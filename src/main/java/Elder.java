@@ -22,6 +22,9 @@ class Elder {
     private boolean validNoOfEldersLeft;
 
     private static Dao<Elder, String> elderDao;
+    
+    // this no-argument constructor is required by ORMLite
+    Elder () { }
 
     // DAO construction
     static {
