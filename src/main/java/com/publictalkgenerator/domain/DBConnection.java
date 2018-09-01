@@ -1,3 +1,5 @@
+package com.publictalkgenerator.domain;
+
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import java.sql.SQLException;
