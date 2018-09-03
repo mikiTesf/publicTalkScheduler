@@ -8,11 +8,6 @@ import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
 
-/**
- * created by nati
- * sep 1 2018
- * **/
-
 @DatabaseTable
 public class Program {
 

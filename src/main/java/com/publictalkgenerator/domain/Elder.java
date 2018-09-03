@@ -1,11 +1,5 @@
 package com.publictalkgenerator.domain;
 
-/**
- * created by miki
- * sep 1 2018
- * **/
-
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.field.DatabaseField;
@@ -15,26 +9,26 @@ import com.j256.ormlite.table.TableUtils;
 import java.sql.SQLException;
 
 @DatabaseTable
-class Elder {
+public class Elder {
     @DatabaseField (canBeNull = false)
     private String firstName;
     @DatabaseField (canBeNull = false)
     private String middleName;
     @DatabaseField
     private String lastName;
-    @DatabaseField (generatedId = true, canBeNull = false)
+    @DatabaseField (id = true, canBeNull = false)
     private String phoneNumber;
-    @DatabaseField (canBeNull = false)
+    @DatabaseField (foreign = true, canBeNull = false)
     private Talk talk;
-    @DatabaseField (canBeNull = false)
+    @DatabaseField (foreign = true, canBeNull = false)
     private Congregation congregation;
 
     private static Dao<Elder, String> elderDao;
     
     // this no-argument constructor is required by ORMLite
-    Elder () { }
+    public Elder() { }
 
-    // DAO construction
+    // DAO initialization
     static {
         try {
             elderDao = DaoManager.createDao(DBConnection.getConnectionSource(), Elder.class);

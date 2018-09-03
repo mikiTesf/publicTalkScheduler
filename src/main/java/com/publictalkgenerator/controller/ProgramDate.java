@@ -2,11 +2,6 @@ package com.publictalkgenerator.controller;
 
 import java.util.Date;
 
-/**
- * created by nati
- * sep 1 2018
- * **/
-
 public class ProgramDate {
 
     private Date startDate;

@@ -1,10 +1,5 @@
 package com.publictalkgenerator.domain;
 
-/**
- * created by nati
- * sep 1 2018
- * **/
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.field.DatabaseField;
@@ -15,7 +10,8 @@ import java.sql.SQLException;
 
 @DatabaseTable
 public class Congregation {
-
+    @DatabaseField (generatedId = true)
+    private int id;
     @DatabaseField
     private String name;
 
@@ -30,7 +26,7 @@ public class Congregation {
         }
     }
 
-    Congregation (String name){
+    public Congregation (String name){
         this.name = name;
     }
 
@@ -40,6 +36,10 @@ public class Congregation {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getId() {
+        return id;
     }
 
     @Override
