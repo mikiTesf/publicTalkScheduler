@@ -1,10 +1,5 @@
 package com.publictalkgenerator.domain;
 
-/**
- * created by nati
- * sep 1 2018
- * **/
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.field.DatabaseField;
@@ -15,7 +10,7 @@ import java.sql.SQLException;
 
 @DatabaseTable
 public class Talk {
-    @DatabaseField (canBeNull = false)
+    @DatabaseField (id = true, canBeNull = false)
     private int talkNumber;
 
     @DatabaseField
@@ -26,7 +21,7 @@ public class Talk {
     static {
         try {
             talkDao = DaoManager.createDao(DBConnection.getConnectionSource(), Talk.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Elder.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Talk.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -35,7 +30,7 @@ public class Talk {
         setTalkNumber(talkNumber);
     }
 
-    Talk (int talkNumber, String title){
+    public Talk(int talkNumber, String title){
         this(talkNumber);
         setTitle(title);
     }
