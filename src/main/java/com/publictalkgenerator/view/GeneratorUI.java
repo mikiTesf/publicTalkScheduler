@@ -1,4 +1,4 @@
-package view;
+package com.publictalkgenerator.view;
 
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Talk;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="view.GeneratorUI">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.publictalkgenerator.view.GeneratorUI">
   <tabbedpane id="23ea0" binding="tabbedPane">
     <constraints>
       <xy x="20" y="20" width="500" height="400"/>

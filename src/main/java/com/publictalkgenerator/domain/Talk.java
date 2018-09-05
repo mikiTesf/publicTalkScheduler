@@ -26,6 +26,9 @@ public class Talk {
             e.printStackTrace();
         }
     }
+
+    Talk () {}
+
     Talk (int talkNumber){
         setTalkNumber(talkNumber);
     }

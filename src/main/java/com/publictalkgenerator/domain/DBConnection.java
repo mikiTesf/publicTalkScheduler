@@ -8,7 +8,7 @@ class DBConnection {
     private static ConnectionSource connectionSource;
     static {
         // put the path to your local database
-        String dbURL = "jdbc:sqlite:";
+        String dbURL = "jdbc:sqlite:/home/miki/Documents/projects/java/publicTalkScheduler/src/main/resources/data.db";
         try{
             connectionSource = new JdbcConnectionSource(dbURL);
         } catch (SQLException e){
