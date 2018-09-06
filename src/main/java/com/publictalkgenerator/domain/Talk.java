@@ -10,7 +10,10 @@ import java.sql.SQLException;
 
 @DatabaseTable
 public class Talk {
-    @DatabaseField (id = true, canBeNull = false)
+    @DatabaseField (generatedId = true, canBeNull = false)
+    private int id;
+
+    @DatabaseField (canBeNull = false)
     private int talkNumber;
 
     @DatabaseField
@@ -26,6 +29,9 @@ public class Talk {
             e.printStackTrace();
         }
     }
+
+    Talk () {}
+
     Talk (int talkNumber){
         setTalkNumber(talkNumber);
     }
@@ -33,6 +39,10 @@ public class Talk {
     public Talk(int talkNumber, String title){
         this(talkNumber);
         setTitle(title);
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getTalkNumber() {

@@ -4,3 +4,7 @@ publicTalkScheduler.ipr
 publicTalkScheduler.iws
 out/
 target/
+.ideaDataSources/
+data.db
+dataSources/
+src/main/resources/

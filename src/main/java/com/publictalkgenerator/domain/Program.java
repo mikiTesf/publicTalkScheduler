@@ -31,6 +31,8 @@ public class Program {
         }
     }
 
+    Program () {}
+
     public Program(int weekNumber, Congregation congregation, Elder elder) {
         this.weekNumber = weekNumber;
         this.congregation = congregation;

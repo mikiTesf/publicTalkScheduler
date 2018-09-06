@@ -17,10 +17,12 @@ public class Congregation {
 
     private static Dao<Congregation, String> congregationDao;
 
+    Congregation () {}
+
     static {
         try {
             congregationDao = DaoManager.createDao(DBConnection.getConnectionSource(), Congregation.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Elder.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Congregation.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
