@@ -26,7 +26,7 @@ public class Elder {
     private static Dao<Elder, String> elderDao;
     
     // this no-argument constructor is required by ORMLite
-    public Elder() { }
+    public Elder () { }
 
     // DAO initialization
     static {

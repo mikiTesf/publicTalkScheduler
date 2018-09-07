@@ -25,7 +25,7 @@ public class GeneratorUI extends JFrame {
     private JButton addCongregationButton;
     private JTextField talkTitleTextField;
     private JSpinner talkNumberSpinner1;
-    private JComboBox<Integer> talkNumberComboBox;
+    private JComboBox<String> talkNumberComboBox;
     private JButton addTalkButton;
     private JLabel congregationNameLabel;
     private JLabel talkNameLabel;
@@ -56,7 +56,6 @@ public class GeneratorUI extends JFrame {
         List<Talk> talkList = null;
         List<Elder> elderList = null;
 
-//        congregationComboBox talkNumberComboBox
         try {
             congList = Congregation.getCongregationDao().queryForAll();
             talkList = Talk.getTalkDao().queryForAll();
@@ -113,7 +112,7 @@ public class GeneratorUI extends JFrame {
         }
 
         for (Talk talk : talkList) {
-            talkNumberComboBox.addItem(talk.getTalkNumber());
+            talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
         }
 
         congregationTable.setModel(congregationTableModel);
@@ -132,7 +131,7 @@ public class GeneratorUI extends JFrame {
                 Congregation congregation = new Congregation(congregationNameField.getText());
                 try {
                     Congregation.getCongregationDao()
-                            .createIfNotExists(congregation);
+                                .createIfNotExists(congregation);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -184,13 +183,12 @@ public class GeneratorUI extends JFrame {
 
                 Congregation congregation = null;
                 try {
-                    congregation = Congregation
-                            .getCongregationDao()
-                            .queryBuilder()
-                            .where()
-                            .eq("name", congregationComboBox.getSelectedItem())
-                            .query()
-                            .get(0);
+                    congregation = Congregation.getCongregationDao()
+                                               .queryBuilder()
+                                               .where()
+                                               .eq("name", congregationComboBox.getSelectedItem())
+                                               .query()
+                                               .get(0);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -198,12 +196,20 @@ public class GeneratorUI extends JFrame {
 
                 Talk talk = null;
                 try {
+                    int spaceBeginIndex = talkNumberComboBox.getSelectedItem()
+                                                            .toString()
+                                                            .indexOf(" ");
+                    int talkNumber      = Integer.parseInt (
+                                            talkNumberComboBox.getSelectedItem()
+                                                              .toString()
+                                                              .substring(0, spaceBeginIndex)
+                    );
                     talk = Talk.getTalkDao()
-                            .queryBuilder()
-                            .where()
-                            .eq("talkNumber", talkNumberComboBox.getSelectedItem())
-                            .query()
-                            .get(0);
+                               .queryBuilder()
+                               .where()
+                               .eq("talkNumber", talkNumber)
+                               .query()
+                               .get(0);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }

@@ -25,7 +25,7 @@ public class Program {
     static {
         try {
             programDao = DaoManager.createDao(DBConnection.getConnectionSource(), Program.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Elder.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Program.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
