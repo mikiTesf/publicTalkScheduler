@@ -136,6 +136,14 @@ public class ProgramGenerator {
         }
     }
 
+    public List<Elder> getAllElders() {
+        return allElders;
+    }
+
+    public List<Congregation> getAllCongregations() {
+        return allCongregations;
+    }
+
     public List<LocalDate> getProgramDates() {
 
         List<LocalDate> programDates = new ArrayList<>();
