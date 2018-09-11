@@ -1,5 +1,6 @@
 package com.publictalkgenerator.controller;
 
+import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
@@ -18,7 +19,6 @@ public class ProgramGenerator {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    private static final int MINIMUM_FREE_WEEKS = 3;
 
     public ProgramGenerator(LocalDate startDate) {
         this.startDate = startDate;
@@ -64,12 +64,14 @@ public class ProgramGenerator {
             Elder elder = rankingElders.get(0);
             Program program = new Program(week, congregation, elder);
             program.save();
+            programsForWeek.add(program);
         }
-        return null;
+        return programsForWeek;
     }
 
     private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation){
 
+        List <Elder> elders = new ArrayList<>();
         try {
             List<Elder> eldersWhoGaveTalkInThisCongregation = new ArrayList<>();
             Program.getProgramDao().queryBuilder()
@@ -80,12 +82,12 @@ public class ProgramGenerator {
 
             allElders.removeAll(eldersWhoGaveTalkInThisCongregation);
 
-            return allElders;
+            elders = allElders;
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return elders;
     }
 
     private Map<Elder,Double> getEldersRank(Congregation congregation) {
@@ -93,8 +95,8 @@ public class ProgramGenerator {
         Map <Elder, Double> eldersRank = new HashMap<>();
 
         List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
-        viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, MINIMUM_FREE_WEEKS);
-        viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders);
+        viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, Constants.MINIMUM_FREE_WEEKS);
+        viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders, Constants.MINIMUM_ELDERS_LEFT_IN_CONG);
         for (Elder elder : viableElders){
 
             double elderRank = calculateElderRank (elder, congregation);
@@ -103,12 +105,12 @@ public class ProgramGenerator {
         return eldersRank;
     }
 
-    // TODO implement
-    private List<Elder> removeEldersWithLeftEldersInCongregationBelowMinimum(List<Elder> viableElders) {
+    // TODO implement removeEldersWithLeftEldersInCongregationBelowMinimum
+    private List<Elder> removeEldersWithLeftEldersInCongregationBelowMinimum(List<Elder> viableElders, int minimumEldersLeftInCong) {
         return viableElders;
     }
 
-    // TODO implement
+    // TODO implement removeEldersWhoGaveTalkIn_N_Weeks
     private List<Elder> removeEldersWhoGaveTalkIn_N_Weeks(List<Elder> eldersWhoDidntGiveTalkInThisCongregation, int minimumFreeWeeks) {
         return eldersWhoDidntGiveTalkInThisCongregation;
     }
@@ -124,12 +126,7 @@ public class ProgramGenerator {
     void doGenerate () throws SQLException {
 
         List<LocalDate> programDates = getProgramDates();
-        List<Congregation> allCongregations = new ArrayList<>();
-        try {
-            allCongregations = Congregation.getCongregationDao().queryForAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        List<Congregation> allCongregations =  Congregation.getCongregationDao().queryForAll();
 
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
