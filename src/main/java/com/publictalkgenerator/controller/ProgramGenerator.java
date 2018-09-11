@@ -4,6 +4,7 @@ import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
+import org.apache.commons.collections4.list.UnmodifiableList;
 
 import java.sql.SQLException;
 import java.time.DayOfWeek;
@@ -18,11 +19,15 @@ public class ProgramGenerator {
 
     private LocalDate startDate;
     private LocalDate endDate;
+    private List <Elder> allElders;
+    private  List<Congregation> allCongregations;
 
 
-    public ProgramGenerator(LocalDate startDate) {
+    public ProgramGenerator(LocalDate startDate) throws SQLException {
         this.startDate = startDate;
         this.endDate = startDate.plusDays(364);
+        allElders = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
+        allCongregations =  new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
     }
 
     public LocalDate getStartDate() {
@@ -78,7 +83,6 @@ public class ProgramGenerator {
                     .where().eq("congregation", congregation).query().forEach(item ->
                     eldersWhoGaveTalkInThisCongregation.add(item.getElder())
             );
-            List <Elder> allElders = Elder.getElderDao().queryForAll();
 
             allElders.removeAll(eldersWhoGaveTalkInThisCongregation);
 
@@ -126,7 +130,6 @@ public class ProgramGenerator {
     void doGenerate () throws SQLException {
 
         List<LocalDate> programDates = getProgramDates();
-        List<Congregation> allCongregations =  Congregation.getCongregationDao().queryForAll();
 
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
