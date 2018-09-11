@@ -137,12 +137,12 @@ public class ProgramGenerator {
 
         List<LocalDate> programDates = new ArrayList<>();
         // TODO check for backward selection of sunday for a year which starts in between a week...
-        LocalDate sundays = startDate.with(DayOfWeek.SUNDAY);
+        LocalDate sunday = startDate.with(DayOfWeek.SUNDAY);
 
-        while (sundays.isBefore(endDate) || sundays.equals(endDate)){
+        while (sunday.isBefore(endDate) || sunday.equals(endDate)){
 
-            programDates.add(sundays);
-            sundays.plusWeeks(1);
+            programDates.add(sunday);
+            sunday.plusWeeks(1);
         }
 
         return programDates;
