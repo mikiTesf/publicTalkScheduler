@@ -2,12 +2,13 @@ package com.publictalkgenerator.domain;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.util.Date;
 
 @DatabaseTable
 public class Program {
@@ -15,8 +16,8 @@ public class Program {
     @DatabaseField (generatedId = true, canBeNull = false)
     private int id;
 
-    @DatabaseField (canBeNull = false)
-    private LocalDate date;
+    @DatabaseField (canBeNull = false, dataType = DataType.DATE_STRING)
+    private Date date;
 
     @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Congregation congregation;
@@ -40,19 +41,19 @@ public class Program {
 
     Program () {}
 
-    public Program(LocalDate date, Congregation congregation, boolean isFree){
+    public Program(Date date, Congregation congregation, boolean isFree){
         this.date = date;
         this.congregation = congregation;
         this.isFree = isFree;
     }
 
-    public Program(LocalDate date, Congregation congregation, Elder elder) {
+    public Program(Date date, Congregation congregation, Elder elder) {
         this.date = date;
         this.congregation = congregation;
         this.elder = elder;
     }
 
-    public LocalDate getDate() {
+    public Date getDate() {
         return date;
     }
 

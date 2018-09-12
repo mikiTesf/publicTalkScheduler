@@ -1,26 +1,18 @@
 package com.publictalkgenerator.controller;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class ProgramDate {
 
-    private Date startDate;
-
-    ProgramDate (Date startDate){
-        this.startDate = startDate;
+    public static Date localDateToDate (LocalDate localDate) {
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public Date getDateAfterWeeks (int weekOffset){
-        //TODO implement
-        return null;
-    }
-
-    public String getWeekLocalName (int weekOffset){
-        //TODO implement
-        return null;
+    public static LocalDate dateToLocalDate (Date date) {
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }
