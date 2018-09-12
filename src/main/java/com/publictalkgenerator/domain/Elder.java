@@ -10,13 +10,15 @@ import java.sql.SQLException;
 
 @DatabaseTable
 public class Elder {
+    @DatabaseField (generatedId = true, canBeNull = false)
+    private int id;
     @DatabaseField (canBeNull = false)
     private String firstName;
     @DatabaseField (canBeNull = false)
     private String middleName;
     @DatabaseField
     private String lastName;
-    @DatabaseField (id = true, canBeNull = false)
+    @DatabaseField (canBeNull = false)
     private String phoneNumber;
     @DatabaseField (foreign = true, canBeNull = false)
     private Talk talk;

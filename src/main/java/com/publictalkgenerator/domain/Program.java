@@ -7,17 +7,21 @@ import com.j256.ormlite.table.DatabaseTable;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 @DatabaseTable
 public class Program {
 
-    @DatabaseField (canBeNull = false)
-    private int weekNumber;
+    @DatabaseField (generatedId = true, canBeNull = false)
+    private int id;
 
     @DatabaseField (canBeNull = false)
+    private LocalDate date;
+
+    @DatabaseField (canBeNull = false, foreign = true)
     private Congregation congregation;
 
-    @DatabaseField (canBeNull = false)
+    @DatabaseField (canBeNull = false, foreign = true)
     private Elder elder;
 
     private static Dao<Program, String> programDao;
@@ -33,14 +37,14 @@ public class Program {
 
     Program () {}
 
-    public Program(int weekNumber, Congregation congregation, Elder elder) {
-        this.weekNumber = weekNumber;
+    public Program(LocalDate date, Congregation congregation, Elder elder) {
+        this.date = date;
         this.congregation = congregation;
         this.elder = elder;
     }
 
-    public int getWeekNumber() {
-        return weekNumber;
+    public LocalDate getDate() {
+        return date;
     }
 
     public Congregation getCongregation() {
@@ -52,7 +56,7 @@ public class Program {
     }
 
 
-    void save() {
+    public void save() {
         try {
             programDao.createIfNotExists(this);
         } catch (SQLException e) {
