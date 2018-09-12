@@ -20,7 +20,9 @@ public class ProgramGenerator {
     private LocalDate startDate;
     private LocalDate endDate;
     private List <Elder> allElders;
-    private  List<Congregation> allCongregations;
+    private List<Congregation> allCongregations;
+    private List<LocalDate> programDates;
+    float totalFreeWeeksForCongregation;
 
 
     public ProgramGenerator(LocalDate startDate) throws SQLException {
@@ -28,6 +30,8 @@ public class ProgramGenerator {
         this.endDate = startDate.plusDays(364);
         allElders = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
         allCongregations =  new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
+        generateProgramDates();
+        totalFreeWeeksForCongregation = programDates.size() - allElders.size();
     }
 
     public LocalDate getStartDate() {
@@ -52,25 +56,71 @@ public class ProgramGenerator {
 
         for (Congregation congregation : congregations){
 
-            Map<Elder, Double> eldersRank = getEldersRank (week, congregation);
-            List<Elder> rankingElders = new ArrayList<>();
-            Double maxRank = Collections.max(eldersRank.values());
+            Program program;
 
-            for (Elder key : eldersRank.keySet()){
+            if (weekShouldBeFree(week, congregation)){
 
-                if (eldersRank.get(key).equals(maxRank)){
-                    rankingElders.add(key);
+                program = new Program(week, congregation, true);
+            }
+            else {
+
+                Map<Elder, Double> eldersRank = getEldersRank(week, congregation);
+                List<Elder> rankingElders = new ArrayList<>();
+                Double maxRank = Collections.max(eldersRank.values());
+
+                for (Elder key : eldersRank.keySet()) {
+
+                    if (eldersRank.get(key).equals(maxRank)) {
+                        rankingElders.add(key);
+                    }
+                }
+
+                // if there are no candidate elders just make it free.
+                if (rankingElders.size() == 0){
+                    program = new Program(week, congregation, true);
+                }
+                else {
+
+                    Elder elder = rankingElders.get(0);
+                    program = new Program(week, congregation, elder);
                 }
             }
-
-            // TODO find more ways to rank equally ranking elders...
-            // TODO check if empty set...
-            Elder elder = rankingElders.get(0);
-            Program program = new Program(week, congregation, elder);
             program.save();
             programsForWeek.add(program);
         }
         return programsForWeek;
+    }
+
+    private boolean weekShouldBeFree(LocalDate week, Congregation congregation) throws SQLException {
+
+        double currentWeekNumber = distanceBetweenTwoDates(startDate, week);
+        double expectedNumberOfFrees = (totalFreeWeeksForCongregation * currentWeekNumber) / programDates.size();
+        double actualNumberOfFrees = getNumberOfFreesForCongregation(congregation, week);
+
+        if (expectedNumberOfFrees < actualNumberOfFrees){
+
+            if (percentageOfFreeCongregationsInAWeek (week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK){
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private double percentageOfFreeCongregationsInAWeek(LocalDate week) throws SQLException {
+
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("date", week).eq("isFree", true).query();
+        return ((double) programs.size()) / ((double) allCongregations.size());
+    }
+
+    private double getNumberOfFreesForCongregation(Congregation congregation, LocalDate week) throws SQLException {
+
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("date", week).eq("congregation", congregation).query();
+        return programs.size();
     }
 
     private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation){
@@ -99,7 +149,7 @@ public class ProgramGenerator {
         return elders;
     }
 
-    private Map<Elder,Double> getEldersRank(LocalDate week, Congregation congregation) {
+    private Map<Elder,Double> getEldersRank(LocalDate week, Congregation congregation) throws SQLException {
 
         Map <Elder, Double> eldersRank = new HashMap<>();
         List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
@@ -108,30 +158,25 @@ public class ProgramGenerator {
 
         for (Elder elder : viableElders){
 
-            double elderRank = 0;
-            try {
-                elderRank = calculateElderRank (week, elder, congregation);
-            } catch (SQLException e) {
-                //TODO decide what to do here -- ?
-                e.printStackTrace();
-            }
+            double elderRank  = calculateElderRank (week, elder, congregation);
             eldersRank.put(elder, elderRank);
         }
         return eldersRank;
     }
 
-    // TODO implement removeEldersWithLeftEldersInCongregationBelowMinimum
+    // TODO implement removeEldersWithLeftEldersInCongregationBelowMinimum --> not needed for now but maybe it will improve program quality
     private List<Elder> removeEldersWithLeftEldersInCongregationBelowMinimum(List<Elder> viableElders, int minimumEldersLeftInCong) {
         return viableElders;
     }
 
-    // TODO implement removeEldersWhoGaveTalkIn_N_Weeks
+    // TODO implement removeEldersWhoGaveTalkIn_N_Weeks --> not needed for now but maybe it will improve program quality
     private List<Elder> removeEldersWhoGaveTalkIn_N_Weeks(List<Elder> eldersWhoDidntGiveTalkInThisCongregation, int minimumFreeWeeks) {
         return eldersWhoDidntGiveTalkInThisCongregation;
     }
 
     private double calculateElderRank(LocalDate week, Elder elder, Congregation congregation) throws SQLException {
 
+        // TODO make sure no two elders get same ranking as much as possible
         double rank = (
                     distanceFromLastTalk(elder, week) * elderRepeatingInCongretationFactor (elder, congregation) * eldersRemainingInCongregation (week, elder) ) /
                     ((totalTalksGivenByElder(elder) + 1) * totalEldersInTheElderCongregation(elder)
@@ -174,6 +219,15 @@ public class ProgramGenerator {
         return 1;
     }
 
+    private double distanceBetweenTwoDates (LocalDate oldest, LocalDate latest){
+
+        if (oldest.isBefore(latest)){
+
+            return (double) (oldest.getDayOfYear() - latest.getDayOfYear()) / 7.0d;
+        }
+        return 0;
+    }
+
     private double distanceFromLastTalk(Elder elder, LocalDate week) throws SQLException {
 
         List<Program> programs = Program.getProgramDao().queryBuilder()
@@ -190,8 +244,6 @@ public class ProgramGenerator {
 
     void doGenerate () throws SQLException {
 
-        List<LocalDate> programDates = getProgramDates();
-
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
         }
@@ -205,9 +257,9 @@ public class ProgramGenerator {
         return allCongregations;
     }
 
-    public List<LocalDate> getProgramDates() {
+    public void generateProgramDates() {
 
-        List<LocalDate> programDates = new ArrayList<>();
+        programDates = new ArrayList<>();
         // TODO check for backward selection of sunday for a year which starts in between a week...
         LocalDate sunday = startDate.with(DayOfWeek.SUNDAY);
 
@@ -216,7 +268,5 @@ public class ProgramGenerator {
             programDates.add(sunday);
             sunday.plusWeeks(1);
         }
-
-        return programDates;
     }
 }

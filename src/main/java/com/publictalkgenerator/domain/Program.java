@@ -21,8 +21,11 @@ public class Program {
     @DatabaseField (canBeNull = false, foreign = true)
     private Congregation congregation;
 
-    @DatabaseField (canBeNull = false, foreign = true)
+    @DatabaseField (canBeNull = true, foreign = true)
     private Elder elder;
+
+    @DatabaseField
+    private boolean isFree;
 
     private static Dao<Program, String> programDao;
 
@@ -36,6 +39,12 @@ public class Program {
     }
 
     Program () {}
+
+    public Program(LocalDate date, Congregation congregation, boolean isFree){
+        this.date = date;
+        this.congregation = congregation;
+        this.isFree = isFree;
+    }
 
     public Program(LocalDate date, Congregation congregation, Elder elder) {
         this.date = date;
@@ -62,6 +71,14 @@ public class Program {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isFree() {
+        return isFree;
+    }
+
+    public void setFree(boolean free) {
+        isFree = free;
     }
 
     public static Dao<Program, String> getProgramDao () {
