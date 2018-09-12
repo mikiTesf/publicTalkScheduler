@@ -52,7 +52,7 @@ public class ProgramGenerator {
 
         for (Congregation congregation : congregations){
 
-            Map<Elder, Double> eldersRank = getEldersRank (congregation);
+            Map<Elder, Double> eldersRank = getEldersRank (week, congregation);
             List<Elder> rankingElders = new ArrayList<>();
             Double maxRank = Collections.max(eldersRank.values());
 
@@ -99,7 +99,7 @@ public class ProgramGenerator {
         return elders;
     }
 
-    private Map<Elder,Double> getEldersRank(Congregation congregation) {
+    private Map<Elder,Double> getEldersRank(LocalDate week, Congregation congregation) {
 
         Map <Elder, Double> eldersRank = new HashMap<>();
         List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
@@ -108,7 +108,13 @@ public class ProgramGenerator {
 
         for (Elder elder : viableElders){
 
-            double elderRank = calculateElderRank (elder, congregation);
+            double elderRank = 0;
+            try {
+                elderRank = calculateElderRank (week, elder, congregation);
+            } catch (SQLException e) {
+                //TODO decide what to do here -- ?
+                e.printStackTrace();
+            }
             eldersRank.put(elder, elderRank);
         }
         return eldersRank;
@@ -124,38 +130,61 @@ public class ProgramGenerator {
         return eldersWhoDidntGiveTalkInThisCongregation;
     }
 
-    private double calculateElderRank(Elder elder, Congregation congregation) {
+    private double calculateElderRank(LocalDate week, Elder elder, Congregation congregation) throws SQLException {
 
         double rank = (
-                    distanceFromLastTalk(elder) * elderRepeatingInCongretationFactor (congregation) * eldersRemainingInCongregation (elder) ) /
+                    distanceFromLastTalk(elder, week) * elderRepeatingInCongretationFactor (elder, congregation) * eldersRemainingInCongregation (week, elder) ) /
                     ((totalTalksGivenByElder(elder) + 1) * totalEldersInTheElderCongregation(elder)
                 );
         return rank;
     }
 
-    private double totalEldersInTheElderCongregation(Elder elder) {
-        // TODO implement totalEldersInTheElderCongregation
-        return 0;
+    private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
+
+        Congregation.getCongregationDao().refresh(elder.getCongregation());
+        List<Elder> elders = Elder.getElderDao().queryBuilder()
+                .where().eq("congregation", elder.getCongregation()).query();
+        return elders.size();
     }
 
-    private double totalTalksGivenByElder(Elder elder) {
-        // TODO implement totalEldersInTheElderCongregation
-        return 0;
+    private double totalTalksGivenByElder(Elder elder) throws SQLException {
+
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("elder", elder).query();
+        return programs.size();
     }
 
-    private double eldersRemainingInCongregation(Elder elder) {
-        // TODO implement totalEldersInTheElderCongregation
-        return 0;
+    private double eldersRemainingInCongregation(LocalDate week, Elder elder) throws SQLException {
+
+        Congregation.getCongregationDao().refresh(elder.getCongregation());
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("congregation", elder.getCongregation()).eq("date", week).query();
+
+        return totalEldersInTheElderCongregation(elder) - programs.size();
     }
 
-    private double elderRepeatingInCongretationFactor(Congregation congregation) {
-        // TODO implement totalEldersInTheElderCongregation
-        return 0;
+    private double elderRepeatingInCongretationFactor(Elder elder, Congregation congregation) throws SQLException {
+
+        //Congregation.getCongregationDao().refresh(congregation);
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("congregation", congregation).eq("elder", elder).query();
+        if (programs.size() > 0){
+            return 0;
+        }
+        return 1;
     }
 
-    private double distanceFromLastTalk(Elder elder) {
-        // TODO implement totalEldersInTheElderCongregation
-        return 0;
+    private double distanceFromLastTalk(Elder elder, LocalDate week) throws SQLException {
+
+        List<Program> programs = Program.getProgramDao().queryBuilder()
+                .where().eq("elder", elder).query();
+
+        LocalDate lastTalkDate = startDate;
+        if (programs.size() > 0){
+            lastTalkDate = programs.get(programs.size() - 1).getDate();
+        }
+
+        return (double) (week.getDayOfYear() - lastTalkDate.getDayOfYear()) / 7.0d;
     }
 
 
