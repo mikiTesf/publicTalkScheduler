@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 @DatabaseTable
 public class Congregation {
-    @DatabaseField (generatedId = true)
+    @DatabaseField (generatedId = true, canBeNull = false)
     private int id;
     @DatabaseField
     private String name;

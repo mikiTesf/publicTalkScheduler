@@ -53,7 +53,6 @@ public class ProgramGenerator {
         for (Congregation congregation : congregations){
 
             Map<Elder, Double> eldersRank = getEldersRank (congregation);
-
             List<Elder> rankingElders = new ArrayList<>();
             Double maxRank = Collections.max(eldersRank.values());
 
@@ -77,18 +76,24 @@ public class ProgramGenerator {
     private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation){
 
         List <Elder> elders = new ArrayList<>();
+
         try {
+
+            List<Program> programsForCongregation = Program.getProgramDao().queryBuilder()
+                    .where().eq("congregation", congregation).query();
             List<Elder> eldersWhoGaveTalkInThisCongregation = new ArrayList<>();
-            Program.getProgramDao().queryBuilder()
-                    .where().eq("congregation", congregation).query().forEach(item ->
-                    eldersWhoGaveTalkInThisCongregation.add(item.getElder())
-            );
+
+            for (Program program : programsForCongregation){
+
+                Elder.getElderDao().refresh(program.getElder());
+                eldersWhoGaveTalkInThisCongregation.add(program.getElder());
+            }
 
             allElders.removeAll(eldersWhoGaveTalkInThisCongregation);
-
             elders = allElders;
+        }
+        catch (SQLException e) {
 
-        } catch (SQLException e) {
             e.printStackTrace();
         }
         return elders;
@@ -97,10 +102,10 @@ public class ProgramGenerator {
     private Map<Elder,Double> getEldersRank(Congregation congregation) {
 
         Map <Elder, Double> eldersRank = new HashMap<>();
-
         List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
         viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, Constants.MINIMUM_FREE_WEEKS);
         viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders, Constants.MINIMUM_ELDERS_LEFT_IN_CONG);
+
         for (Elder elder : viableElders){
 
             double elderRank = calculateElderRank (elder, congregation);
@@ -121,9 +126,36 @@ public class ProgramGenerator {
 
     private double calculateElderRank(Elder elder, Congregation congregation) {
 
-        double rank = 0;
-        // TODO implement
+        double rank = (
+                    distanceFromLastTalk(elder) * elderRepeatingInCongretationFactor (congregation) * eldersRemainingInCongregation (elder) ) /
+                    ((totalTalksGivenByElder(elder) + 1) * totalEldersInTheElderCongregation(elder)
+                );
         return rank;
+    }
+
+    private double totalEldersInTheElderCongregation(Elder elder) {
+        // TODO implement totalEldersInTheElderCongregation
+        return 0;
+    }
+
+    private double totalTalksGivenByElder(Elder elder) {
+        // TODO implement totalEldersInTheElderCongregation
+        return 0;
+    }
+
+    private double eldersRemainingInCongregation(Elder elder) {
+        // TODO implement totalEldersInTheElderCongregation
+        return 0;
+    }
+
+    private double elderRepeatingInCongretationFactor(Congregation congregation) {
+        // TODO implement totalEldersInTheElderCongregation
+        return 0;
+    }
+
+    private double distanceFromLastTalk(Elder elder) {
+        // TODO implement totalEldersInTheElderCongregation
+        return 0;
     }
 
 

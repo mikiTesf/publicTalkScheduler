@@ -12,6 +12,9 @@ import java.time.LocalDate;
 @DatabaseTable
 public class Program {
 
+    @DatabaseField (generatedId = true, canBeNull = false)
+    private int id;
+
     @DatabaseField (canBeNull = false)
     private LocalDate date;
 
