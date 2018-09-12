@@ -11,10 +11,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 
-/**
- *
- * **/
-
 public class ProgramGenerator {
 
     private LocalDate startDate;
@@ -26,10 +22,10 @@ public class ProgramGenerator {
 
 
     public ProgramGenerator(LocalDate startDate) throws SQLException {
-        this.startDate = startDate;
-        this.endDate = startDate.plusDays(364);
-        allElders = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
-        allCongregations =  new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
+        this.startDate   = startDate;
+        this.endDate     = startDate.plusDays(364);
+        allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
+        allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
         generateProgramDates();
         totalFreeWeeksForCongregation = programDates.size() - allElders.size();
     }
@@ -53,6 +49,7 @@ public class ProgramGenerator {
     private List<Program> generateProgramForWeek(LocalDate week, List<Congregation> congregations) throws SQLException {
 
         List<Program> programsForWeek = new ArrayList<>();
+        Date programDate = ProgramDate.localDateToDate(week);
 
         for (Congregation congregation : congregations){
 
@@ -60,7 +57,7 @@ public class ProgramGenerator {
 
             if (weekShouldBeFree(week, congregation)){
 
-                program = new Program(week, congregation, true);
+                program = new Program(programDate, congregation, true);
             }
             else {
 
@@ -77,12 +74,12 @@ public class ProgramGenerator {
 
                 // if there are no candidate elders just make it free.
                 if (rankingElders.size() == 0){
-                    program = new Program(week, congregation, true);
+                    program = new Program(programDate, congregation, true);
                 }
                 else {
 
                     Elder elder = rankingElders.get(0);
-                    program = new Program(week, congregation, elder);
+                    program = new Program(programDate, congregation, elder);
                 }
             }
             program.save();
@@ -106,27 +103,28 @@ public class ProgramGenerator {
     }
 
     private double percentageOfFreeCongregationsInAWeek(LocalDate week) throws SQLException {
-
+        Date programDate = ProgramDate.localDateToDate(week);
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("date", week).eq("isFree", true).query();
+                .where().eq("date", programDate).and().eq("isFree", true).query();
         return ((double) programs.size()) / ((double) allCongregations.size());
     }
 
     private double getNumberOfFreesForCongregation(Congregation congregation, LocalDate week) throws SQLException {
-
+        Date programDate = ProgramDate.localDateToDate(week);
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("date", week).eq("congregation", congregation).query();
+                .where().eq("date", programDate).and().eq("congregation_id", congregation).query();
         return programs.size();
     }
 
-    private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation){
+    private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation) throws SQLException {
 
         List <Elder> elders = new ArrayList<>();
+        List <Elder> allElders = Elder.getElderDao().queryForAll();
 
         try {
 
             List<Program> programsForCongregation = Program.getProgramDao().queryBuilder()
-                    .where().eq("congregation", congregation).query();
+                    .where().eq("congregation_id", congregation).query();
             List<Elder> eldersWhoGaveTalkInThisCongregation = new ArrayList<>();
 
             for (Program program : programsForCongregation){
@@ -184,22 +182,22 @@ public class ProgramGenerator {
 
         Congregation.getCongregationDao().refresh(elder.getCongregation());
         List<Elder> elders = Elder.getElderDao().queryBuilder()
-                .where().eq("congregation", elder.getCongregation()).query();
+                .where().eq("congregation_id", elder.getCongregation()).query();
         return elders.size();
     }
 
     private double totalTalksGivenByElder(Elder elder) throws SQLException {
 
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("elder", elder).query();
+                .where().eq("elder_id", elder).query();
         return programs.size();
     }
 
     private double eldersRemainingInCongregation(LocalDate week, Elder elder) throws SQLException {
-
+        Date programDate = ProgramDate.localDateToDate(week);
         Congregation.getCongregationDao().refresh(elder.getCongregation());
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("congregation", elder.getCongregation()).eq("date", week).query();
+                .where().eq("congregation_id", elder.getCongregation()).and().eq("date", programDate).query();
 
         return totalEldersInTheElderCongregation(elder) - programs.size();
     }
@@ -208,7 +206,7 @@ public class ProgramGenerator {
 
         //Congregation.getCongregationDao().refresh(congregation);
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("congregation", congregation).eq("elder", elder).query();
+                .where().eq("congregation_id", congregation).and().eq("elder_id", elder).query();
         if (programs.size() > 0){
             return 0;
         }
@@ -227,18 +225,17 @@ public class ProgramGenerator {
     private double distanceFromLastTalk(Elder elder, LocalDate week) throws SQLException {
 
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("elder", elder).query();
+                .where().eq("elder_id", elder).query();
 
         LocalDate lastTalkDate = startDate;
         if (programs.size() > 0){
-            lastTalkDate = programs.get(programs.size() - 1).getDate();
+            lastTalkDate = ProgramDate.dateToLocalDate(programs.get(programs.size() - 1).getDate());
         }
 
         return (double) (week.getDayOfYear() - lastTalkDate.getDayOfYear()) / 7.0d;
     }
 
-
-    void doGenerate () throws SQLException {
+    public void doGenerate () throws SQLException {
 
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
@@ -259,10 +256,10 @@ public class ProgramGenerator {
         // TODO check for backward selection of sunday for a year which starts in between a week...
         LocalDate sunday = startDate.with(DayOfWeek.SUNDAY);
 
-        while (sunday.isBefore(endDate) || sunday.equals(endDate)){
+        while (sunday.isBefore(endDate) || sunday.equals(endDate)) {
 
             programDates.add(sunday);
-            sunday.plusWeeks(1);
+            sunday = sunday.plusWeeks(1);
         }
     }
 }
