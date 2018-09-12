@@ -20,9 +20,9 @@ public class Elder {
     private String lastName;
     @DatabaseField (canBeNull = false)
     private String phoneNumber;
-    @DatabaseField (foreign = true, canBeNull = false)
+    @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Talk talk;
-    @DatabaseField (foreign = true, canBeNull = false)
+    @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Congregation congregation;
 
     private static Dao<Elder, String> elderDao;
@@ -39,6 +39,8 @@ public class Elder {
             e.printStackTrace();
         }
     }
+
+    public int getId() { return this.id; }
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;

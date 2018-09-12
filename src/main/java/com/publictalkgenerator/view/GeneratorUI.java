@@ -42,8 +42,15 @@ public class GeneratorUI extends JFrame {
     private JTable elderTable;
     private JScrollPane elderTableScrollPane;
     private JButton removeElderButton;
+    private JSpinner startDateDaySpinner;
+    private JComboBox startDateMonthComboBox;
+    private JSpinner startDateYearSpinner;
+    private JSpinner endDateDaySpinner;
+    private JComboBox endDateMonthComboBox;
+    private JSpinner endDateYearSpinner;
+    private JButton generateButton;
 
-    private GeneratorUI() {
+    public GeneratorUI() {
         setTitle("የንግግር ፕሮግራም አመንጪ");
 
         try {
@@ -53,18 +60,21 @@ public class GeneratorUI extends JFrame {
         }
 
         List<Congregation> congList = null;
-        List<Talk> talkList = null;
-        List<Elder> elderList = null;
+        List<Talk> talkList         = null;
+        List<Elder> elderList       = null;
 
         try {
-            congList = Congregation.getCongregationDao().queryForAll();
-            talkList = Talk.getTalkDao().queryForAll();
+            congList  = Congregation.getCongregationDao().queryForAll();
+            talkList  = Talk.getTalkDao().queryForAll();
             elderList = Elder.getElderDao().queryForAll();
+            for (Elder elder : elderList) {
+                Elder.getElderDao().refresh(elder);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        // setting up the TableModel(s) for congregation and talk
+        // setting up the TableModel(s) for congregation, talk and elder
         congregationTableModel = new DefaultTableModel();
         congregationTableModel.addColumn("#");
         congregationTableModel.addColumn("ስም");
@@ -75,6 +85,7 @@ public class GeneratorUI extends JFrame {
         talkTableModel.addColumn("ቁጥር");
 
         elderTableModel = new DefaultTableModel();
+        elderTableModel.addColumn("#");
         elderTableModel.addColumn("ስም");
         elderTableModel.addColumn("የአባት ስም");
         elderTableModel.addColumn("የአያት ስም");
@@ -92,18 +103,19 @@ public class GeneratorUI extends JFrame {
         congTalkElderTableRow = new Object[3];
         for (Talk talk : talkList) {
             congTalkElderTableRow[0] = talk.getId();
-            congTalkElderTableRow[1] = talk.getTalkNumber();
-            congTalkElderTableRow[2] = talk.getTitle();
+            congTalkElderTableRow[1] = talk.getTitle();
+            congTalkElderTableRow[2] = talk.getTalkNumber();
             talkTableModel.addRow(congTalkElderTableRow);
         }
-        congTalkElderTableRow = new Object[6];
+        congTalkElderTableRow = new Object[7];
         for (Elder elder : elderList) {
-            congTalkElderTableRow[0] = elder.getFirstName();
-            congTalkElderTableRow[1] = elder.getMiddleName();
-            congTalkElderTableRow[2] = elder.getLastName();
-            congTalkElderTableRow[3] = elder.getPhoneNumber();
-            congTalkElderTableRow[4] = elder.getTalk().getTalkNumber();
-            congTalkElderTableRow[5] = elder.getCongregation().getName();
+            congTalkElderTableRow[0] = elder.getId();
+            congTalkElderTableRow[1] = elder.getFirstName();
+            congTalkElderTableRow[2] = elder.getMiddleName();
+            congTalkElderTableRow[3] = elder.getLastName();
+            congTalkElderTableRow[4] = elder.getPhoneNumber();
+            congTalkElderTableRow[5] = elder.getTalk().getTalkNumber();
+            congTalkElderTableRow[6] = elder.getCongregation().getName();
             elderTableModel.addRow(congTalkElderTableRow);
         }
         // fill congregation and talk comboBoxes in the ተናጋሪ tab
@@ -116,12 +128,17 @@ public class GeneratorUI extends JFrame {
         }
 
         congregationTable.setModel(congregationTableModel);
-        talkTable.setModel(talkTableModel);
-        elderTable.setModel(elderTableModel);
+        congregationTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
-        congTabelScrollPane.setPreferredSize(new Dimension(400, 100));
-        talkTableScrollPane.setPreferredSize(new Dimension(400, 100));
-        elderTableScrollPane.setPreferredSize(new Dimension(400, 100));
+        talkTable.setModel(talkTableModel);
+        talkTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+
+        elderTable.setModel(elderTableModel);
+        elderTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+
+        congTabelScrollPane.setPreferredSize(new Dimension(400, 150));
+        talkTableScrollPane.setPreferredSize(new Dimension(400, 150));
+        elderTableScrollPane.setPreferredSize(new Dimension(400, 150));
         // congregation_talk tab button events
         addCongregationButton.addActionListener(new ActionListener() {
             @Override
@@ -171,13 +188,13 @@ public class GeneratorUI extends JFrame {
                         middleNameTextField.getText().equals("")    ||
                         lastNameTextField.getText().equals("")      ||
                         firstNameTextField.getText().equals("")
-                    )
+                   )
                     return;
 
                 Elder elder = new Elder();
 
                 elder.setFirstName(firstNameTextField.getText());
-                elder.setMiddleName(lastNameTextField.getText());
+                elder.setMiddleName(middleNameTextField.getText());
                 elder.setLastName(lastNameTextField.getText());
                 elder.setPhoneNumber(phoneNumberTextField.getText());
 
@@ -221,13 +238,14 @@ public class GeneratorUI extends JFrame {
                     e1.printStackTrace();
                 }
 
-                Object[] elderDetails = new Object[6];
-                elderDetails[0] = elder.getFirstName();
-                elderDetails[1] = elder.getMiddleName();
-                elderDetails[2] = elder.getLastName();
-                elderDetails[3] = elder.getPhoneNumber();
-                elderDetails[4] = elder.getTalk().getTalkNumber();
-                elderDetails[5] = elder.getCongregation().getName();
+                Object[] elderDetails = new Object[7];
+                elderDetails[0] = elder.getId();
+                elderDetails[1] = elder.getFirstName();
+                elderDetails[2] = elder.getMiddleName();
+                elderDetails[3] = elder.getLastName();
+                elderDetails[4] = elder.getPhoneNumber();
+                elderDetails[5] = elder.getTalk().getTalkNumber();
+                elderDetails[6] = elder.getCongregation().getName();
                 elderTableModel.addRow(elderDetails);
                 clearFields(Field.ELDER);
             }
@@ -266,9 +284,9 @@ public class GeneratorUI extends JFrame {
         removeElderButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String elderPhoneNumber = elderTable.getValueAt(elderTable.getSelectedRow(), 3).toString();
+                String elderID = elderTable.getValueAt(elderTable.getSelectedRow(), 0).toString();
                 try {
-                    Elder.getElderDao().deleteById(elderPhoneNumber);
+                    Elder.getElderDao().deleteById(elderID);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -276,14 +294,21 @@ public class GeneratorUI extends JFrame {
                 JOptionPane.showMessageDialog(frame, "ተናጋሪው ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
             }
         });
+
+        generateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
     }
 
-    private void constructUI () {
+    public void constructUI () {
         setContentPane(tabbedPane);
 
         pack();
         setLocationRelativeTo(null);
-        setResizable(false);
+        setResizable(true);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

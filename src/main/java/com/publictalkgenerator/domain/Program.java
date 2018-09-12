@@ -18,10 +18,10 @@ public class Program {
     @DatabaseField (canBeNull = false)
     private LocalDate date;
 
-    @DatabaseField (canBeNull = false, foreign = true)
+    @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Congregation congregation;
 
-    @DatabaseField (canBeNull = true, foreign = true)
+    @DatabaseField (foreign = true, foreignAutoRefresh = true)
     private Elder elder;
 
     @DatabaseField

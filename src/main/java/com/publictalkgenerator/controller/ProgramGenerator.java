@@ -11,10 +11,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 
-/**
- *
- * **/
-
 public class ProgramGenerator {
 
     private LocalDate startDate;
@@ -26,10 +22,10 @@ public class ProgramGenerator {
 
 
     public ProgramGenerator(LocalDate startDate) throws SQLException {
-        this.startDate = startDate;
-        this.endDate = startDate.plusDays(364);
-        allElders = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
-        allCongregations =  new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
+        this.startDate   = startDate;
+        this.endDate     = startDate.plusDays(364);
+        allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
+        allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
         generateProgramDates();
         totalFreeWeeksForCongregation = programDates.size() - allElders.size();
     }
@@ -237,8 +233,7 @@ public class ProgramGenerator {
         return (double) (week.getDayOfYear() - lastTalkDate.getDayOfYear()) / 7.0d;
     }
 
-
-    void doGenerate () throws SQLException {
+    public void doGenerate () throws SQLException {
 
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
@@ -259,10 +254,10 @@ public class ProgramGenerator {
         // TODO check for backward selection of sunday for a year which starts in between a week...
         LocalDate sunday = startDate.with(DayOfWeek.SUNDAY);
 
-        while (sunday.isBefore(endDate) || sunday.equals(endDate)){
+        while (sunday.isBefore(endDate) || sunday.equals(endDate)) {
 
             programDates.add(sunday);
-            sunday.plusWeeks(1);
+            sunday = sunday.plusWeeks(1);
         }
     }
 }
