@@ -99,12 +99,8 @@ public class ProgramGenerator {
 
         if (expectedNumberOfFrees < actualNumberOfFrees){
 
-            if (percentageOfFreeCongregationsInAWeek (week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK){
-                return true;
-            }
-            else {
-                return false;
-            }
+            // prevent too many free congregations on the same week
+            return percentageOfFreeCongregationsInAWeek(week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK;
         }
         return false;
     }
