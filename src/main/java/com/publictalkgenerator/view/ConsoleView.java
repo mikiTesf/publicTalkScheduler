@@ -3,16 +3,15 @@ package com.publictalkgenerator.view;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
+import org.apache.commons.collections4.list.TreeList;
 import org.apache.commons.collections4.list.UnmodifiableList;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class ConsoleView {
 
-    List<Date> programDates;
+    Set<Date> programDates;
     private List <Elder> allElders;
     private List<Congregation> allCongregations;
     static final int colWidth = 15;
@@ -28,7 +27,7 @@ public class ConsoleView {
 
         programsForCongregation = Program.getProgramDao().queryForAll();
 
-        List<Date> progDates = new ArrayList<>();
+        Set<Date> progDates = new TreeSet<>();
 
         for (Program program : programsForCongregation){
 
@@ -63,13 +62,13 @@ public class ConsoleView {
 
             for (Program p : programsForWeek){
 
-                Congregation.getCongregationDao().refresh(p.getCongregation());
+
                 if (p.getCongregation().getId() == congregation.getId()){
                     if (p.isFree()){
                         names.add("");
                     }
                     else {
-                        Elder.getElderDao().refresh(p.getElder());
+
                         names.add(p.getElder().getFirstName());
                     }
                 }
