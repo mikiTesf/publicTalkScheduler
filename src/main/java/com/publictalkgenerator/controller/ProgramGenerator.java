@@ -9,6 +9,7 @@ import org.apache.commons.collections4.list.UnmodifiableList;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class ProgramGenerator {
@@ -23,7 +24,7 @@ public class ProgramGenerator {
 
     public ProgramGenerator(LocalDate startDate) throws SQLException {
         this.startDate   = startDate;
-        this.endDate     = startDate.plusDays(364);
+        this.endDate     = startDate.plusYears(1);
         allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
         allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
         generateProgramDates();
@@ -72,8 +73,8 @@ public class ProgramGenerator {
                     }
                 }
 
-                // if there are no candidate elders just make it free.
-                if (rankingElders.size() == 0){
+                // if there are no candidate elders or the maxRank is zero, not fit, just make it free.
+                if (rankingElders.size() == 0 ){
                     program = new Program(programDate, congregation, true);
                 }
                 else {
@@ -92,9 +93,9 @@ public class ProgramGenerator {
 
         double currentWeekNumber = distanceBetweenTwoDates(startDate, week);
         double expectedNumberOfFrees = (totalFreeWeeksForCongregation * currentWeekNumber) / programDates.size();
-        double actualNumberOfFrees = getNumberOfFreesForCongregation(congregation, week);
+        double actualNumberOfFrees = getNumberOfFreesForCongregation(congregation);
 
-        if (expectedNumberOfFrees < actualNumberOfFrees){
+        if (actualNumberOfFrees < expectedNumberOfFrees){
 
             // prevent too many free congregations on the same week
             return percentageOfFreeCongregationsInAWeek(week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK;
@@ -109,10 +110,10 @@ public class ProgramGenerator {
         return ((double) programs.size()) / ((double) allCongregations.size());
     }
 
-    private double getNumberOfFreesForCongregation(Congregation congregation, LocalDate week) throws SQLException {
-        Date programDate = ProgramDate.localDateToDate(week);
+    private double getNumberOfFreesForCongregation(Congregation congregation) throws SQLException {
+
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("date", programDate).and().eq("congregation_id", congregation).query();
+                .where().eq("isFree", true).and().eq("congregation_id", congregation).query();
         return programs.size();
     }
 
@@ -172,7 +173,7 @@ public class ProgramGenerator {
 
         // TODO make sure no two elders get same ranking as much as possible
         double rank = (
-                    distanceFromLastTalk(elder, week) * elderRepeatingInCongretationFactor (elder, congregation) * eldersRemainingInCongregation (week, elder) ) /
+                    distanceFromLastTalk(elder, week) * elderRepeatingInCongregationFactor(elder, congregation) * eldersRemainingInCongregation (week, elder) ) /
                     ((totalTalksGivenByElder(elder) + 1) * totalEldersInTheElderCongregation(elder)
                 );
         return rank;
@@ -202,7 +203,7 @@ public class ProgramGenerator {
         return totalEldersInTheElderCongregation(elder) - programs.size();
     }
 
-    private double elderRepeatingInCongretationFactor(Elder elder, Congregation congregation) throws SQLException {
+    private double elderRepeatingInCongregationFactor(Elder elder, Congregation congregation) throws SQLException {
 
         //Congregation.getCongregationDao().refresh(congregation);
         List<Program> programs = Program.getProgramDao().queryBuilder()
@@ -217,7 +218,7 @@ public class ProgramGenerator {
 
         if (oldest.isBefore(latest)){
 
-            return (double) (oldest.getDayOfYear() - latest.getDayOfYear()) / 7.0d;
+            return (double) (ChronoUnit.WEEKS.between(oldest, latest));
         }
         return 0;
     }
@@ -232,7 +233,7 @@ public class ProgramGenerator {
             lastTalkDate = ProgramDate.dateToLocalDate(programs.get(programs.size() - 1).getDate());
         }
 
-        return (double) (week.getDayOfYear() - lastTalkDate.getDayOfYear()) / 7.0d;
+        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week));
     }
 
     public void doGenerate () throws SQLException {
