@@ -74,7 +74,7 @@ public class ProgramGenerator {
                 }
 
                 // if there are no candidate elders or the maxRank is zero, not fit, just make it free.
-                if (rankingElders.size() == 0 || maxRank == 0){
+                if (rankingElders.size() == 0 ){
                     program = new Program(programDate, congregation, true);
                 }
                 else {
