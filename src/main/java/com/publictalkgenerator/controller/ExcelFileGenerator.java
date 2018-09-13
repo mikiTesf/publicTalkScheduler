@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
+import com.publictalkgenerator.domain.Program;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -17,19 +20,34 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelFileGenerator {
     private XSSFWorkbook excelDoc;
+    private ArrayList<Date> distinctDates;
+    private List<Congregation> congregations;
+    private XSSFCellStyle centerStyle;
 
     public ExcelFileGenerator() {
         excelDoc = new XSSFWorkbook();
         // cell styles to be used later
-        XSSFCellStyle centerStyle = excelDoc.createCellStyle();
+        centerStyle = excelDoc.createCellStyle();
         centerStyle.setAlignment(HorizontalAlignment.CENTER);
+        // A distinct list of Dates from the 'program' table
+        distinctDates = new ArrayList<>();
+        try {
+            for (Program program : Program.getProgramDao().queryBuilder().distinct().selectColumns("date").query()) {
+                distinctDates.add(program.getDate());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         // List of all congregations to prepare a excelDoc for (that's all congregations)
-        List<Congregation> congregations = null;
+        congregations = null;
         try {
             congregations = Congregation.getCongregationDao().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean createExcel () {
         // the main loop that populates the sheet for each congregation
         for (Congregation congregation : congregations) {
             // create a sheet named after the congregation
@@ -79,22 +97,69 @@ public class ExcelFileGenerator {
                         elderList.get(i).getFirstName() + " " + elderList.get(i).getMiddleName()
                 );
             }
-            /* TODO: Iterate through each date and fill the details of the elders that come to this congregation
-               TODO: Iterate through each date and fill the names of the elders that go from this congregation
-            * */
+            // Iterate through each date and fill the details of the elders that come to this congregation
+            int nextRow = 2; int weekNumber = 1;
+            for (Date date : distinctDates) {
+                Row nonHeaderRow = scheduleSheet.createRow(nextRow);
+                nonHeaderRow.createCell(0).setCellValue(weekNumber);
+                nonHeaderRow.createCell(1).setCellValue(date.toString());
+                // check if the congregation has no elder assigned for it today
+                Elder assignedToThisCongToday = null;
+                try {
+                    assignedToThisCongToday = Program.getProgramDao().queryBuilder().where()
+                            .eq("date", date)
+                            .and()
+                            .eq("congregation_id", congregation)
+                            .query().get(0).getElder();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                if (assignedToThisCongToday == null) {
+                    nonHeaderRow.createCell(2).setCellValue("");
+                    nonHeaderRow.createCell(3).setCellValue("");
+                    nonHeaderRow.createCell(4).setCellValue("");
+                } else {
+                    nonHeaderRow.createCell(2).setCellValue(assignedToThisCongToday.getFirstName() + " " + assignedToThisCongToday.getMiddleName());
+                    // fill the elders talk number
+                    nonHeaderRow.createCell(3).setCellValue(assignedToThisCongToday.getTalk().getTalkNumber());
+                    // fill the elder's phone number
+                    nonHeaderRow.createCell(4).setCellValue(assignedToThisCongToday.getPhoneNumber());
+                }
+
+                for (Elder elder : elderList) {
+                    List<Program> program = null;
+                    try {
+                        program = Program.getProgramDao().queryBuilder().where()
+                                .eq("date", date)
+                                .and()
+                                .eq("elder_id", elder).query();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (program.size() == 0) {
+                        nonHeaderRow.createCell(nonHeaderRow.getLastCellNum()).setCellValue("");
+                    } else {
+                        nonHeaderRow.createCell
+                                (nonHeaderRow.getLastCellNum())
+                                .setCellValue(
+                                        program
+                                        .get(0)
+                                        .getCongregation()
+                                        .getName()
+                                );
+                    }
+                }
+                ++nextRow;
+                ++weekNumber;
+            }
             // auto-size all columns
             for (int i = 0; i < totalHorizontalCells; i++) {
                 scheduleSheet.autoSizeColumn(i);
             }
         }
-    }
 
-    public boolean createExcel () {
-        /* TODO
-        *
-        * populate the excelDoc grid here
-        *
-        * */
         try {
             FileOutputStream out = new FileOutputStream(new File("/home/miki/Desktop/" + "sociopath" + ".xlsx"));
             excelDoc.write(out);

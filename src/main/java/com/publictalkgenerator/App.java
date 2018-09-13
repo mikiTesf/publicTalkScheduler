@@ -13,9 +13,10 @@ public class App {
     public static void main(String[] args) throws SQLException {
         LocalDate startDate = LocalDate.now();
 
-//        ExcelFileGenerator generator = new ExcelFileGenerator();
-//        generator.createExcel();
         ProgramGenerator generator = new ProgramGenerator(startDate);
         generator.doGenerate();
+
+        ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+        fileGenerator.createExcel();
     }
 }
