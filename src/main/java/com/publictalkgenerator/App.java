@@ -11,12 +11,12 @@ import java.time.LocalDate;
 public class App {
 
     public static void main(String[] args) throws SQLException {
-        LocalDate startDate = LocalDate.now();
-
-        ProgramGenerator generator = new ProgramGenerator(startDate);
-        generator.doGenerate();
+       // LocalDate startDate = LocalDate.now();
 
         ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+        //ProgramGenerator generator = new ProgramGenerator(startDate);
+
+        //generator.doGenerate();
         fileGenerator.createExcel();
     }
 }
