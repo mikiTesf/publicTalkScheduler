@@ -19,7 +19,7 @@ public class Talk {
     @DatabaseField
     private String title;
 
-    private static Dao<Talk, String> talkDao;
+    private static Dao<Talk, Integer> talkDao;
 
     static {
         try {
@@ -30,15 +30,19 @@ public class Talk {
         }
     }
 
-    Talk () {}
+    public Talk() {}
 
     Talk (int talkNumber){
         setTalkNumber(talkNumber);
     }
 
-    public Talk(int talkNumber, String title){
+    public Talk(String title, int talkNumber){
         this(talkNumber);
         setTitle(title);
+    }
+
+    public void setId (int id) {
+        this.id = id;
     }
 
     public int getId() {
@@ -78,7 +82,7 @@ public class Talk {
         }
     }
 
-    public static Dao<Talk, String> getTalkDao () {
+    public static Dao<Talk, Integer> getTalkDao () {
         return talkDao;
     }
 }

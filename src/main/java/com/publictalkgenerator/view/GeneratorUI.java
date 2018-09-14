@@ -1,5 +1,7 @@
 package com.publictalkgenerator.view;
 
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
@@ -15,7 +17,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -125,6 +126,7 @@ public class GeneratorUI extends JFrame {
             congTalkElderTableRow[1] = cong.getName();
             congregationTableModel.addRow(congTalkElderTableRow);
         }
+
         congTalkElderTableRow = new Object[3];
         for (Talk talk : talkList) {
             congTalkElderTableRow[0] = talk.getId();
@@ -132,6 +134,7 @@ public class GeneratorUI extends JFrame {
             congTalkElderTableRow[2] = talk.getTalkNumber();
             talkTableModel.addRow(congTalkElderTableRow);
         }
+
         congTalkElderTableRow = new Object[7];
         for (Elder elder : elderList) {
             congTalkElderTableRow[0] = elder.getId();
@@ -185,12 +188,30 @@ public class GeneratorUI extends JFrame {
             }
         });
 
+        updateCongregationButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = congregationTable.getSelectedRow();
+
+                Congregation congregation = new Congregation();
+                congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
+                congregation.setName(
+                        congregationTable.getValueAt(selectedRow, 1).toString()
+                );
+                try {
+                    Congregation.getCongregationDao().update(congregation);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
         addTalkButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (talkTitleTextField.getText().equals("") || talkNumberSpinner1.getValue() == null)
                     return;
-                Talk talk = new Talk((int) talkNumberSpinner1.getValue(), talkTitleTextField.getText());
+                Talk talk = new Talk(talkTitleTextField.getText(), (int) talkNumberSpinner1.getValue());
                 try {
                     Talk.getTalkDao().createIfNotExists(talk);
                 } catch (SQLException e1) {
@@ -201,6 +222,24 @@ public class GeneratorUI extends JFrame {
                 talkDetails[2] = talk.getTitle();
                 talkDetails[1] = talk.getTalkNumber();
                 clearFields(Field.TALK);
+            }
+        });
+
+        updateTalkButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = talkTable.getSelectedRow();
+                Talk talk = new Talk();
+
+                talk.setId( (int) talkTable.getValueAt(selectedRow, 0));
+                talk.setTitle(talkTable.getValueAt(selectedRow, 1).toString());
+                talk.setTalkNumber( (int) talkTable.getValueAt(selectedRow, 2));
+
+                try {
+                    Talk.getTalkDao().update(talk);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
 
@@ -276,13 +315,57 @@ public class GeneratorUI extends JFrame {
             }
         });
 
+        updateElderButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = elderTable.getSelectedRow();
+                Elder elder = new Elder();
+
+                elder.setId((int) elderTable.getValueAt(selectedRow, 0));
+                elder.setFirstName(elderTable.getValueAt(selectedRow, 1).toString());
+                elder.setMiddleName(elderTable.getValueAt(selectedRow, 2).toString());
+                elder.setLastName(elderTable.getValueAt(selectedRow, 3).toString());
+                elder.setPhoneNumber(elderTable.getValueAt(selectedRow, 4).toString());
+
+                Talk talk = null;
+                try {
+                    talk = Talk.getTalkDao()
+                            .queryBuilder()
+                            .where()
+                            .eq("talkNumber", elderTable.getValueAt(selectedRow, 5))
+                            .query().get(0);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+                elder.setTalk(talk);
+
+                Congregation congregation = null;
+                try {
+                    congregation = Congregation.getCongregationDao()
+                            .queryBuilder()
+                            .where()
+                            .eq("name", elderTable.getValueAt(selectedRow, 6))
+                            .query().get(0);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+                elder.setCongregation(congregation);
+
+                try {
+                    Elder.getElderDao().update(elder);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
         removeCongregationButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
                 try {
                     Congregation.getCongregationDao().deleteById
-                            ((int) congregationTable.getValueAt(selectedRow, 0) + "");
+                            ((int) congregationTable.getValueAt(selectedRow, 0));
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -297,7 +380,7 @@ public class GeneratorUI extends JFrame {
                 int selectedRow = talkTable.getSelectedRow();
                 try {
                     Talk.getTalkDao().deleteById
-                            ((int) talkTable.getValueAt(selectedRow, 0) + "");
+                            ((int) talkTable.getValueAt(selectedRow, 0));
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -309,7 +392,7 @@ public class GeneratorUI extends JFrame {
         removeElderButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String elderID = elderTable.getValueAt(elderTable.getSelectedRow(), 0).toString();
+                int elderID = (int) elderTable.getValueAt(elderTable.getSelectedRow(), 0);
                 try {
                     Elder.getElderDao().deleteById(elderID);
                 } catch (SQLException e1) {

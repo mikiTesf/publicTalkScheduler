@@ -25,7 +25,7 @@ public class Elder {
     @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Congregation congregation;
 
-    private static Dao<Elder, String> elderDao;
+    private static Dao<Elder, Integer> elderDao;
     
     // this no-argument constructor is required by ORMLite
     public Elder () { }
@@ -38,6 +38,10 @@ public class Elder {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setId (int id) {
+        this.id = id;
     }
 
     public int getId() { return this.id; }
@@ -103,7 +107,7 @@ public class Elder {
         }
     }
 
-    public static Dao<Elder, String> getElderDao () {
+    public static Dao<Elder, Integer> getElderDao () {
         return elderDao;
     }
 

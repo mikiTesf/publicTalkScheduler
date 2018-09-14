@@ -15,9 +15,9 @@ public class Congregation {
     @DatabaseField
     private String name;
 
-    private static Dao<Congregation, String> congregationDao;
+    private static Dao<Congregation, Integer> congregationDao;
 
-    Congregation () {}
+    public Congregation() {}
 
     static {
         try {
@@ -26,6 +26,10 @@ public class Congregation {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setId (int id) {
+        this.id = id;
     }
 
     public Congregation (String name){
@@ -58,7 +62,7 @@ public class Congregation {
         }
     }
 
-    public static Dao<Congregation, String> getCongregationDao () {
+    public static Dao<Congregation, Integer> getCongregationDao () {
         return congregationDao;
     }
 }
