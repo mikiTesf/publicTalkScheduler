@@ -22,9 +22,9 @@ public class ProgramGenerator {
     float totalFreeWeeksForCongregation;
 
 
-    public ProgramGenerator(LocalDate startDate) throws SQLException {
+    public ProgramGenerator(LocalDate startDate, LocalDate endDate) throws SQLException {
         this.startDate   = startDate;
-        this.endDate     = startDate.plusYears(1);
+        this.endDate     = endDate;
         allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
         allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
         generateProgramDates();

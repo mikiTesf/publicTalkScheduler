@@ -1,5 +1,9 @@
 package com.publictalkgenerator.view;
 
+import com.publictalkgenerator.Constants;
+import com.publictalkgenerator.controller.ExcelFileGenerator;
+import com.publictalkgenerator.controller.ProgramDate;
+import com.publictalkgenerator.controller.ProgramGenerator;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Talk;
 import com.publictalkgenerator.domain.Elder;
@@ -10,6 +14,9 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class GeneratorUI extends JFrame {
@@ -295,10 +302,38 @@ public class GeneratorUI extends JFrame {
             }
         });
 
+        startDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
+        endDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
+        startDateYearSpinner.setModel(new SpinnerNumberModel(2018, 2018, 3000, 1));
+        endDateYearSpinner.setModel(new SpinnerNumberModel(2018, 2018, 3000, 1));
+
         generateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                LocalDate startDate = ProgramDate.dateToLocalDate(
+                        new GregorianCalendar(
+                                (int) startDateYearSpinner.getValue(),
+                                Constants.AMMonths.get(startDateMonthComboBox.getSelectedItem()),
+                                (int) startDateDaySpinner.getValue()
+                        ).getTime()
+                );
+                LocalDate endDate   = ProgramDate.dateToLocalDate(
+                        new GregorianCalendar(
+                                (int) endDateYearSpinner.getValue(),
+                                Constants.AMMonths.get(endDateMonthComboBox.getSelectedItem()),
+                                (int) endDateDaySpinner.getValue()
+                        ).getTime()
+                );
 
+                try {
+                    ProgramGenerator generator = new ProgramGenerator(startDate, endDate);
+                    generator.doGenerate();
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+
+                ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+                fileGenerator.createExcel();
             }
         });
     }
@@ -330,10 +365,5 @@ public class GeneratorUI extends JFrame {
             default:
                 break;
         }
-    }
-
-    public static void main(String[] args) {
-        GeneratorUI UI = new GeneratorUI();
-        UI.constructUI();
     }
 }
