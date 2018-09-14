@@ -56,6 +56,9 @@ public class GeneratorUI extends JFrame {
     private JComboBox endDateMonthComboBox;
     private JSpinner endDateYearSpinner;
     private JButton generateButton;
+    private JButton updateCongregationButton;
+    private JButton updateTalkButton;
+    private JButton updateElderButton;
 
     public GeneratorUI() {
         setTitle("የንግግር ፕሮግራም አመንጪ");
@@ -82,16 +85,31 @@ public class GeneratorUI extends JFrame {
         }
 
         // setting up the TableModel(s) for congregation, talk and elder
-        congregationTableModel = new DefaultTableModel();
+        congregationTableModel = new DefaultTableModel () {
+            @Override
+            public boolean isCellEditable (int row, int column) {
+                return column != 0;
+            }
+        };
         congregationTableModel.addColumn("#");
         congregationTableModel.addColumn("ስም");
 
-        talkTableModel = new DefaultTableModel();
+        talkTableModel = new DefaultTableModel () {
+            @Override
+            public boolean isCellEditable (int row, int column) {
+                return column != 0;
+            }
+        };
         talkTableModel.addColumn("#");
         talkTableModel.addColumn("ርዕስ");
         talkTableModel.addColumn("ቁጥር");
 
-        elderTableModel = new DefaultTableModel();
+        elderTableModel = new DefaultTableModel () {
+            @Override
+            public boolean isCellEditable (int row, int column) {
+                return column != 0;
+            }
+        };
         elderTableModel.addColumn("#");
         elderTableModel.addColumn("ስም");
         elderTableModel.addColumn("የአባት ስም");

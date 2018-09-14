@@ -74,6 +74,19 @@
                   <text value="አውጣ"/>
                 </properties>
               </component>
+              <hspacer id="40305">
+                <constraints>
+                  <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+              </hspacer>
+              <component id="63b2c" class="javax.swing.JButton" binding="updateCongregationButton">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="አዘምን"/>
+                </properties>
+              </component>
             </children>
           </grid>
           <grid id="15213" layout-manager="GridLayoutManager" row-count="4" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -149,6 +162,19 @@
                   <text value="ጨምር"/>
                 </properties>
               </component>
+              <component id="8f0c" class="javax.swing.JButton" binding="updateTalkButton">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="አዘምን"/>
+                </properties>
+              </component>
+              <hspacer id="da2b6">
+                <constraints>
+                  <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+              </hspacer>
             </children>
           </grid>
         </children>
@@ -288,6 +314,19 @@
               <text value="&lt;html&gt;የንግግር&lt;br/&gt;ቁጥር&lt;/html&gt;"/>
             </properties>
           </component>
+          <component id="8e83e" class="javax.swing.JButton" binding="updateElderButton">
+            <constraints>
+              <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="አዘምን"/>
+            </properties>
+          </component>
+          <hspacer id="7f1c4">
+            <constraints>
+              <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
         </children>
       </grid>
       <grid id="3bc4b" layout-manager="GridLayoutManager" row-count="6" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
