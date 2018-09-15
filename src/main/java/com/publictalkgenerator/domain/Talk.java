@@ -70,7 +70,6 @@ public class Talk {
         if (title.isEmpty()){
             return Integer.toString(talkNumber);
         }
-
         return title;
     }
 
