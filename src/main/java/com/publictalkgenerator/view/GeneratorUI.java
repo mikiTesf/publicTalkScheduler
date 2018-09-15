@@ -1,5 +1,7 @@
 package com.publictalkgenerator.view;
 
+import com.publictalkgenerator.controller.ExcelFileGenerator;
+import com.publictalkgenerator.controller.ProgramGenerator;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Talk;
 import com.publictalkgenerator.domain.Elder;
@@ -10,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 
 public class GeneratorUI extends JFrame {
@@ -67,9 +70,6 @@ public class GeneratorUI extends JFrame {
             congList  = Congregation.getCongregationDao().queryForAll();
             talkList  = Talk.getTalkDao().queryForAll();
             elderList = Elder.getElderDao().queryForAll();
-            for (Elder elder : elderList) {
-                Elder.getElderDao().refresh(elder);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -295,10 +295,27 @@ public class GeneratorUI extends JFrame {
             }
         });
 
+        SpinnerNumberModel daySpinnerModel  = new SpinnerNumberModel(1.0, 1.0, 31.0, 1.0);
+        SpinnerNumberModel yearSpinnerModel = new SpinnerNumberModel(2018.0, 2018.0, 3000.0, 1.0);
+
+        startDateDaySpinner.setModel(daySpinnerModel);
+        startDateYearSpinner.setModel(yearSpinnerModel);
+        endDateDaySpinner.setModel(daySpinnerModel);
+        endDateYearSpinner.setModel(yearSpinnerModel);
+
         generateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                LocalDate startDate = LocalDate.now();
+                try {
+                    ProgramGenerator generator = new ProgramGenerator(startDate);
+                    generator.doGenerate();
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                    return;
+                }
+                ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+                fileGenerator.createExcel();
             }
         });
     }
