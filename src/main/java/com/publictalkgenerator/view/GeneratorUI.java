@@ -1,7 +1,5 @@
 package com.publictalkgenerator.view;
 
-import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.UpdateBuilder;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
@@ -120,31 +118,31 @@ public class GeneratorUI extends JFrame {
         elderTableModel.addColumn("ጉባኤ");
 
         // fill the tables on the congregation/talk tab
-        Object[] congTalkElderTableRow = new Object[2];
+        Object[] congregationTableRows = new Object[2];
         for (Congregation cong : congList) {
-            congTalkElderTableRow[0] = cong.getId();
-            congTalkElderTableRow[1] = cong.getName();
-            congregationTableModel.addRow(congTalkElderTableRow);
+            congregationTableRows[0] = cong.getId();
+            congregationTableRows[1] = cong.getName();
+            congregationTableModel.addRow(congregationTableRows);
         }
 
-        congTalkElderTableRow = new Object[3];
+        Object[] talkTableRows = new Object[3];
         for (Talk talk : talkList) {
-            congTalkElderTableRow[0] = talk.getId();
-            congTalkElderTableRow[1] = talk.getTitle();
-            congTalkElderTableRow[2] = talk.getTalkNumber();
-            talkTableModel.addRow(congTalkElderTableRow);
+            talkTableRows[0] = talk.getId();
+            talkTableRows[1] = talk.getTitle();
+            talkTableRows[2] = talk.getTalkNumber();
+            talkTableModel.addRow(talkTableRows);
         }
 
-        congTalkElderTableRow = new Object[7];
+        Object[] elderTableRows = new Object[7];
         for (Elder elder : elderList) {
-            congTalkElderTableRow[0] = elder.getId();
-            congTalkElderTableRow[1] = elder.getFirstName();
-            congTalkElderTableRow[2] = elder.getMiddleName();
-            congTalkElderTableRow[3] = elder.getLastName();
-            congTalkElderTableRow[4] = elder.getPhoneNumber();
-            congTalkElderTableRow[5] = elder.getTalk().getTalkNumber();
-            congTalkElderTableRow[6] = elder.getCongregation().getName();
-            elderTableModel.addRow(congTalkElderTableRow);
+            elderTableRows[0] = elder.getId();
+            elderTableRows[1] = elder.getFirstName();
+            elderTableRows[2] = elder.getMiddleName();
+            elderTableRows[3] = elder.getLastName();
+            elderTableRows[4] = elder.getPhoneNumber();
+            elderTableRows[5] = elder.getTalk().getTalkNumber();
+            elderTableRows[6] = elder.getCongregation().getName();
+            elderTableModel.addRow(elderTableRows);
         }
         // fill congregation and talk comboBoxes in the ተናጋሪ tab
         for (Congregation congregation : congList) {
@@ -177,14 +175,14 @@ public class GeneratorUI extends JFrame {
                 try {
                     Congregation.getCongregationDao()
                                 .createIfNotExists(congregation);
+                    Object[] congregationDetails = new Object[2];
+                    congregationDetails[0] = congregation.getId();
+                    congregationDetails[1] = congregation.getName();
+                    congregationTableModel.addRow(congregationDetails);
+                    clearFields(Field.CONGREGATION);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                Object[] congregationDetails = new Object[2];
-                congregationDetails[0] = congregation.getId();
-                congregationDetails[1] = congregation.getName();
-                congregationTableModel.addRow(congregationDetails);
-                clearFields(Field.CONGREGATION);
             }
         });
 
@@ -214,14 +212,14 @@ public class GeneratorUI extends JFrame {
                 Talk talk = new Talk(talkTitleTextField.getText(), (int) talkNumberSpinner1.getValue());
                 try {
                     Talk.getTalkDao().createIfNotExists(talk);
+                    Object[] talkDetails = new Object[3];
+                    talkDetails[0] = talk.getId();
+                    talkDetails[2] = talk.getTitle();
+                    talkDetails[1] = talk.getTalkNumber();
+                    clearFields(Field.TALK);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                Object[] talkDetails = new Object[3];
-                talkDetails[0] = talk.getId();
-                talkDetails[2] = talk.getTitle();
-                talkDetails[1] = talk.getTalkNumber();
-                clearFields(Field.TALK);
             }
         });
 
@@ -298,20 +296,19 @@ public class GeneratorUI extends JFrame {
 
                 try {
                     Elder.getElderDao().createIfNotExists(elder);
+                    Object[] elderDetails = new Object[7];
+                    elderDetails[0] = elder.getId();
+                    elderDetails[1] = elder.getFirstName();
+                    elderDetails[2] = elder.getMiddleName();
+                    elderDetails[3] = elder.getLastName();
+                    elderDetails[4] = elder.getPhoneNumber();
+                    elderDetails[5] = elder.getTalk().getTalkNumber();
+                    elderDetails[6] = elder.getCongregation().getName();
+                    elderTableModel.addRow(elderDetails);
+                    clearFields(Field.ELDER);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-
-                Object[] elderDetails = new Object[7];
-                elderDetails[0] = elder.getId();
-                elderDetails[1] = elder.getFirstName();
-                elderDetails[2] = elder.getMiddleName();
-                elderDetails[3] = elder.getLastName();
-                elderDetails[4] = elder.getPhoneNumber();
-                elderDetails[5] = elder.getTalk().getTalkNumber();
-                elderDetails[6] = elder.getCongregation().getName();
-                elderTableModel.addRow(elderDetails);
-                clearFields(Field.ELDER);
             }
         });
 
@@ -414,14 +411,14 @@ public class GeneratorUI extends JFrame {
                 LocalDate startDate = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) startDateYearSpinner.getValue(),
-                                Constants.AMMonths.get(startDateMonthComboBox.getSelectedItem()),
+                                Constants.monthNumber.get(startDateMonthComboBox.getSelectedItem()),
                                 (int) startDateDaySpinner.getValue()
                         ).getTime()
                 );
                 LocalDate endDate   = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) endDateYearSpinner.getValue(),
-                                Constants.AMMonths.get(endDateMonthComboBox.getSelectedItem()),
+                                Constants.monthNumber.get(endDateMonthComboBox.getSelectedItem()),
                                 (int) endDateDaySpinner.getValue()
                         ).getTime()
                 );
