@@ -1,8 +1,5 @@
 package com.publictalkgenerator.view;
 
-
-import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.UpdateBuilder;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
@@ -131,24 +128,24 @@ public class GeneratorUI extends JFrame {
             congregationTableModel.addRow(congTalkElderTableRow);
         }
 
-        congTalkElderTableRow = new Object[3];
+        Object[] talkTableRows = new Object[3];
         for (Talk talk : talkList) {
-            congTalkElderTableRow[0] = talk.getId();
-            congTalkElderTableRow[1] = talk.getTitle();
-            congTalkElderTableRow[2] = talk.getTalkNumber();
-            talkTableModel.addRow(congTalkElderTableRow);
+            talkTableRows[0] = talk.getId();
+            talkTableRows[1] = talk.getTitle();
+            talkTableRows[2] = talk.getTalkNumber();
+            talkTableModel.addRow(talkTableRows);
         }
 
-        congTalkElderTableRow = new Object[7];
+        Object[] elderTableRows = new Object[7];
         for (Elder elder : elderList) {
-            congTalkElderTableRow[0] = elder.getId();
-            congTalkElderTableRow[1] = elder.getFirstName();
-            congTalkElderTableRow[2] = elder.getMiddleName();
-            congTalkElderTableRow[3] = elder.getLastName();
-            congTalkElderTableRow[4] = elder.getPhoneNumber();
-            congTalkElderTableRow[5] = elder.getTalk().getTalkNumber();
-            congTalkElderTableRow[6] = elder.getCongregation().getName();
-            elderTableModel.addRow(congTalkElderTableRow);
+            elderTableRows[0] = elder.getId();
+            elderTableRows[1] = elder.getFirstName();
+            elderTableRows[2] = elder.getMiddleName();
+            elderTableRows[3] = elder.getLastName();
+            elderTableRows[4] = elder.getPhoneNumber();
+            elderTableRows[5] = elder.getTalk().getTalkNumber();
+            elderTableRows[6] = elder.getCongregation().getName();
+            elderTableModel.addRow(elderTableRows);
         }
         // fill congregation and talk comboBoxes in the ተናጋሪ tab
         for (Congregation congregation : congList) {
@@ -182,7 +179,6 @@ public class GeneratorUI extends JFrame {
                 congregation.setTotalElders((int) totalEldersSpinner.getValue());
                 try {
                     congregation = Congregation.getCongregationDao().createIfNotExists(congregation);
-
                     Object[] congregationDetails = new Object[3];
                     congregationDetails[0] = congregation.getId();
                     congregationDetails[1] = congregation.getName();
@@ -222,7 +218,6 @@ public class GeneratorUI extends JFrame {
                 Talk talk = new Talk(talkTitleTextField.getText(), (int) talkNumberSpinner1.getValue());
                 try {
                     talk = Talk.getTalkDao().createIfNotExists(talk);
-
                     Object[] talkDetails = new Object[3];
                     talkDetails[0] = talk.getId();
                     talkDetails[2] = talk.getTitle();
@@ -309,7 +304,6 @@ public class GeneratorUI extends JFrame {
 
                 try {
                     elder = Elder.getElderDao().createIfNotExists(elder);
-
                     Object[] elderDetails = new Object[7];
                     elderDetails[0] = elder.getId();
                     elderDetails[1] = elder.getFirstName();
@@ -323,7 +317,6 @@ public class GeneratorUI extends JFrame {
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-
             }
         });
 
@@ -431,14 +424,14 @@ public class GeneratorUI extends JFrame {
                 LocalDate startDate = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) startDateYearSpinner.getValue(),
-                                Constants.AMMonths.get(startDateMonthComboBox.getSelectedItem()),
+                                Constants.monthNumber.get(startDateMonthComboBox.getSelectedItem()),
                                 (int) startDateDaySpinner.getValue()
                         ).getTime()
                 );
                 LocalDate endDate   = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) endDateYearSpinner.getValue(),
-                                Constants.AMMonths.get(endDateMonthComboBox.getSelectedItem()),
+                                Constants.monthNumber.get(endDateMonthComboBox.getSelectedItem()),
                                 (int) endDateDaySpinner.getValue()
                         ).getTime()
                 );
