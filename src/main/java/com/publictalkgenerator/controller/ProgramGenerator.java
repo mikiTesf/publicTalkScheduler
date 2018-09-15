@@ -179,11 +179,9 @@ public class ProgramGenerator {
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
-
-        Congregation.getCongregationDao().refresh(elder.getCongregation());
-        List<Elder> elders = Elder.getElderDao().queryBuilder()
-                .where().eq("congregation_id", elder.getCongregation()).query();
-        return elders.size();
+        return Elder.getElderDao().queryBuilder()
+                .where().eq("congregation_id", elder.getCongregation()).query()
+                .get(0).getCongregation().getTotalElders();
     }
 
     private double totalTalksGivenByElder(Elder elder) throws SQLException {

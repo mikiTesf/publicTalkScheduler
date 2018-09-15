@@ -62,6 +62,9 @@ public class GeneratorUI extends JFrame {
     private JButton updateCongregationButton;
     private JButton updateTalkButton;
     private JButton updateElderButton;
+    private JSpinner totalEldersSpinner;
+    private List<Congregation> congList;
+    private List<Talk> talkList;
 
     public GeneratorUI() {
         setTitle("የንግግር ፕሮግራም አመንጪ");
@@ -72,9 +75,9 @@ public class GeneratorUI extends JFrame {
             e.printStackTrace();
         }
 
-        List<Congregation> congList = null;
-        List<Talk> talkList         = null;
-        List<Elder> elderList       = null;
+        congList              = null;
+        talkList              = null;
+        List<Elder> elderList = null;
 
         try {
             congList  = Congregation.getCongregationDao().queryForAll();
@@ -93,6 +96,7 @@ public class GeneratorUI extends JFrame {
         };
         congregationTableModel.addColumn("#");
         congregationTableModel.addColumn("ስም");
+        congregationTableModel.addColumn("የሽማግሌዎች ብዛት");
 
         talkTableModel = new DefaultTableModel () {
             @Override
@@ -119,10 +123,11 @@ public class GeneratorUI extends JFrame {
         elderTableModel.addColumn("ጉባኤ");
 
         // fill the tables on the congregation/talk tab
-        Object[] congTalkElderTableRow = new Object[2];
+        Object[] congTalkElderTableRow = new Object[3];
         for (Congregation cong : congList) {
             congTalkElderTableRow[0] = cong.getId();
             congTalkElderTableRow[1] = cong.getName();
+            congTalkElderTableRow[2] = cong.getTotalElders();
             congregationTableModel.addRow(congTalkElderTableRow);
         }
 
@@ -172,18 +177,22 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (congregationNameField.getText().equals(""))
                     return;
+
                 Congregation congregation = new Congregation(congregationNameField.getText());
+                congregation.setTotalElders((int) totalEldersSpinner.getValue());
                 try {
-                    Congregation.getCongregationDao()
-                                .createIfNotExists(congregation);
+                    congregation = Congregation.getCongregationDao().createIfNotExists(congregation);
+
+                    Object[] congregationDetails = new Object[3];
+                    congregationDetails[0] = congregation.getId();
+                    congregationDetails[1] = congregation.getName();
+                    congregationDetails[2] = congregation.getTotalElders();
+                    congregationTableModel.addRow(congregationDetails);
+                    clearFields(Field.CONGREGATION);
+                    congregationComboBox.addItem(congregation.getName());
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                Object[] congregationDetails = new Object[2];
-                congregationDetails[0] = congregation.getId();
-                congregationDetails[1] = congregation.getName();
-                congregationTableModel.addRow(congregationDetails);
-                clearFields(Field.CONGREGATION);
             }
         });
 
@@ -194,11 +203,11 @@ public class GeneratorUI extends JFrame {
 
                 Congregation congregation = new Congregation();
                 congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
-                congregation.setName(
-                        congregationTable.getValueAt(selectedRow, 1).toString()
-                );
+                congregation.setName(congregationTable.getValueAt(selectedRow, 1).toString());
+                congregation.setTotalElders((int) congregationTable.getValueAt(selectedRow, 2));
                 try {
                     Congregation.getCongregationDao().update(congregation);
+                    refreshCongregationComboBox();
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -212,15 +221,17 @@ public class GeneratorUI extends JFrame {
                     return;
                 Talk talk = new Talk(talkTitleTextField.getText(), (int) talkNumberSpinner1.getValue());
                 try {
-                    Talk.getTalkDao().createIfNotExists(talk);
+                    talk = Talk.getTalkDao().createIfNotExists(talk);
+
+                    Object[] talkDetails = new Object[3];
+                    talkDetails[0] = talk.getId();
+                    talkDetails[2] = talk.getTitle();
+                    talkDetails[1] = talk.getTalkNumber();
+                    clearFields(Field.TALK);
+                    talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                Object[] talkDetails = new Object[3];
-                talkDetails[0] = talk.getId();
-                talkDetails[2] = talk.getTitle();
-                talkDetails[1] = talk.getTalkNumber();
-                clearFields(Field.TALK);
             }
         });
 
@@ -231,11 +242,12 @@ public class GeneratorUI extends JFrame {
                 Talk talk = new Talk();
 
                 talk.setId( (int) talkTable.getValueAt(selectedRow, 0));
+                talk.setTalkNumber(Integer.parseInt(talkTable.getValueAt(selectedRow, 2).toString()));
                 talk.setTitle(talkTable.getValueAt(selectedRow, 1).toString());
-                talk.setTalkNumber( (int) talkTable.getValueAt(selectedRow, 2));
 
                 try {
                     Talk.getTalkDao().update(talk);
+                    refreshTalkComboBox();
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -296,21 +308,22 @@ public class GeneratorUI extends JFrame {
                 elder.setTalk(talk);
 
                 try {
-                    Elder.getElderDao().createIfNotExists(elder);
+                    elder = Elder.getElderDao().createIfNotExists(elder);
+
+                    Object[] elderDetails = new Object[7];
+                    elderDetails[0] = elder.getId();
+                    elderDetails[1] = elder.getFirstName();
+                    elderDetails[2] = elder.getMiddleName();
+                    elderDetails[3] = elder.getLastName();
+                    elderDetails[4] = elder.getPhoneNumber();
+                    elderDetails[5] = elder.getTalk().getTalkNumber();
+                    elderDetails[6] = elder.getCongregation().getName();
+                    elderTableModel.addRow(elderDetails);
+                    clearFields(Field.ELDER);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
 
-                Object[] elderDetails = new Object[7];
-                elderDetails[0] = elder.getId();
-                elderDetails[1] = elder.getFirstName();
-                elderDetails[2] = elder.getMiddleName();
-                elderDetails[3] = elder.getLastName();
-                elderDetails[4] = elder.getPhoneNumber();
-                elderDetails[5] = elder.getTalk().getTalkNumber();
-                elderDetails[6] = elder.getCongregation().getName();
-                elderTableModel.addRow(elderDetails);
-                clearFields(Field.ELDER);
             }
         });
 
@@ -363,13 +376,15 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
                 try {
-                    Congregation.getCongregationDao().deleteById
-                            ((int) congregationTable.getValueAt(selectedRow, 0));
+                    String congName = congregationTable.getValueAt(selectedRow, 1).toString();
+                    Congregation.getCongregationDao()
+                            .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
+                    congregationTableModel.removeRow(selectedRow);
+                    congregationComboBox.removeItem(congName);
+                    JOptionPane.showMessageDialog(frame, "ንግግሩ ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                congregationTableModel.removeRow(selectedRow);
-                JOptionPane.showMessageDialog(frame, "ንግግሩ ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -378,8 +393,10 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = talkTable.getSelectedRow();
                 try {
-                    Talk.getTalkDao().deleteById
-                            ((int) talkTable.getValueAt(selectedRow, 0));
+                    String talkNumberPlusTitle = talkTable.getValueAt(selectedRow, 2)
+                            + talkTable.getValueAt(selectedRow, 1).toString();
+                    Talk.getTalkDao().deleteById((int) talkTable.getValueAt(selectedRow, 0));
+                    talkNumberComboBox.removeItem(talkNumberPlusTitle);
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -402,6 +419,7 @@ public class GeneratorUI extends JFrame {
             }
         });
 
+        totalEldersSpinner.setModel(new SpinnerNumberModel(1, 1, 100, 1));
         startDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
         endDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
         startDateYearSpinner.setModel(new SpinnerNumberModel(2018, 2018, 3000, 1));
@@ -464,6 +482,30 @@ public class GeneratorUI extends JFrame {
                 break;
             default:
                 break;
+        }
+    }
+
+    private void refreshCongregationComboBox () {
+        try {
+            congList = Congregation.getCongregationDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        congregationComboBox.removeAllItems();
+        for (Congregation cong : congList) {
+            congregationComboBox.addItem(cong.getName());
+        }
+    }
+
+    private void refreshTalkComboBox () {
+        try {
+            talkList = Talk.getTalkDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        talkNumberComboBox.removeAllItems();
+        for (Talk talk : talkList) {
+            talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
         }
     }
 }
