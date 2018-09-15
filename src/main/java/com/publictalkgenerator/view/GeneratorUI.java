@@ -1,5 +1,6 @@
 package com.publictalkgenerator.view;
 
+
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import com.publictalkgenerator.Constants;
@@ -18,6 +19,7 @@ import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.GregorianCalendar;
+
 import java.util.List;
 
 public class GeneratorUI extends JFrame {
@@ -78,9 +80,6 @@ public class GeneratorUI extends JFrame {
             congList  = Congregation.getCongregationDao().queryForAll();
             talkList  = Talk.getTalkDao().queryForAll();
             elderList = Elder.getElderDao().queryForAll();
-            for (Elder elder : elderList) {
-                Elder.getElderDao().refresh(elder);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

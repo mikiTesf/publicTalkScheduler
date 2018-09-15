@@ -161,7 +161,7 @@ public class ExcelFileGenerator {
         }
 
         try {
-            FileOutputStream out = new FileOutputStream(new File("/home/miki/Desktop/" + "sociopath" + ".xlsx"));
+            FileOutputStream out = new FileOutputStream(new File("schedule" + ".xlsx"));
             excelDoc.write(out);
             System.out.println("excel file generated...");
             out.close();
