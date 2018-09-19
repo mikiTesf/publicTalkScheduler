@@ -13,35 +13,17 @@ import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 
 public class ExcelFileGenerator {
     private XSSFWorkbook excelDoc;
     private ArrayList<Date> distinctDates;
     private List<Congregation> congregations;
-    private XSSFCellStyle centerStyle;
-    private XSSFCellStyle centerBoldStyle;
 
     public ExcelFileGenerator() {
         excelDoc = new XSSFWorkbook();
-        // cell styles to be used later
-        // horizontally center only style
-        centerStyle = excelDoc.createCellStyle();
-        centerStyle.setAlignment(HorizontalAlignment.CENTER);
-        // horizontally and vertically center and bold style
-        centerBoldStyle = excelDoc.createCellStyle();
-        centerBoldStyle.setAlignment(HorizontalAlignment.CENTER);
-        centerBoldStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        Font boldFont = excelDoc.createFont();
-        boldFont.setBold(true);
-        centerBoldStyle.setFont(boldFont);
         // A distinct list of Dates from the 'program' table
         distinctDates = new ArrayList<>();
         try {
@@ -65,8 +47,11 @@ public class ExcelFileGenerator {
         for (Congregation congregation : congregations) {
             // create a sheet named after the congregation
             XSSFSheet scheduleSheet = excelDoc.createSheet(congregation.getName());
+            scheduleSheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+            scheduleSheet.setMargin(Sheet.LeftMargin, 0.2);
+            scheduleSheet.setMargin(Sheet.RightMargin, 0.2);
             // creating table-header row
-            Row row1 = scheduleSheet.createRow(0);
+            Row headerRow = scheduleSheet.createRow(0);
             /* the first row has two columns. One has the name of the congregation to which
              the program belongs and the second has the text "ከጉባኤ የሚሄዱ". The first column
              spans 6 cells. The span of the second column depends on the number of elders
@@ -84,42 +69,38 @@ public class ExcelFileGenerator {
                 e.printStackTrace();
             }
 
+            //noinspection ConstantConditions
             int totalHorizontalCells = 5 + elderList.size();
 
             for (int i = 0 ; i < totalHorizontalCells; i++) {
-                row1.createCell(i);
+                headerRow.createCell(i);
             }
             // writing the title of the first column (row 0) and merging the first 5 cells
-            row1.getCell(0).setCellValue(congregation.getName());
-            row1.getCell(0).setCellStyle(centerBoldStyle);
+            headerRow.getCell(headerRow.getFirstCellNum()).setCellValue(congregation.getName());
             scheduleSheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
             // writing the title of the second column (row 0) and merging the next n cells
-            row1.getCell(5).setCellValue("ከጉባኤ የሚሄዱ");
-            row1.getCell(5).setCellStyle(centerBoldStyle);
+            headerRow.getCell(5).setCellValue("ከጉባኤ የሚሄዱ");
             scheduleSheet.addMergedRegion(new CellRangeAddress(0, 0, 5, totalHorizontalCells - 1));
+            formatRow(headerRow);
             // give titles to the first 6 columns (cells) of the next row
             Row row2 = scheduleSheet.createRow(1);
             row2.createCell(0).setCellValue("ሳምንት");
-            row2.getCell(0).setCellStyle(centerBoldStyle);
             row2.createCell(1).setCellValue("ቀን");
-            row2.getCell(1).setCellStyle(centerBoldStyle);
             row2.createCell(2).setCellValue("ተናጋሪ");
-            row2.getCell(2).setCellStyle(centerBoldStyle);
             row2.createCell(3).setCellValue("የንግግር ቁ.");
-            row2.getCell(3).setCellStyle(centerBoldStyle);
             row2.createCell(4).setCellValue("የሞባይል ስ.ቁ.");
-            row2.getCell(4).setCellStyle(centerBoldStyle);
             // fill the next n cells with the names of the elders to be sent from this congregation
             for (int i = 0; i < elderList.size(); i++) {
                 row2.createCell(5 + i).setCellValue(
-                        elderList.get(i).getFirstName() + " " + elderList.get(i).getMiddleName() + "\n"
-                        + "(" + elderList.get(i).getTalk().getTalkNumber() + ")"
+                        elderList.get(i).getFirstName() + " " + elderList.get(i).getMiddleName() + "\n\r"
+                                + "(ንግግር ቁ. " + elderList.get(i).getTalk().getTalkNumber() + ")"
                 );
-                row2.getCell(5 + i).setCellStyle(centerBoldStyle);
             }
+            formatRow(row2);
             // Iterate through each date and fill the details of the elders that come to this congregation
             int nextRow = 2;
             int weekNumber = 1;
+
             for (Date weekDate : distinctDates) {
                 Calendar thisWeek = Calendar.getInstance();
                 thisWeek.setTime(weekDate);
@@ -131,8 +112,8 @@ public class ExcelFileGenerator {
                     weekNumber = 1;
 
                 Row nonHeaderRow = scheduleSheet.createRow(nextRow);
+
                 nonHeaderRow.createCell(0).setCellValue(weekNumber);
-                nonHeaderRow.getCell(0).setCellStyle(centerStyle);
                 nonHeaderRow.createCell(1).setCellValue(
                         Constants.monthName.get(thisWeek.get(Calendar.MONTH)) + " " +
                         thisWeek.get(Calendar.DAY_OF_MONTH) + " " +
@@ -158,7 +139,6 @@ public class ExcelFileGenerator {
                     nonHeaderRow.createCell(2).setCellValue(assignedToThisCongToday.getFirstName() + " " + assignedToThisCongToday.getMiddleName());
                     // fill the elders talk number
                     nonHeaderRow.createCell(3).setCellValue(assignedToThisCongToday.getTalk().getTalkNumber());
-                    nonHeaderRow.getCell(3).setCellStyle(centerStyle);
                     // fill the elder's phone number
                     nonHeaderRow.createCell(4).setCellValue(assignedToThisCongToday.getPhoneNumber());
                 }
@@ -174,15 +154,17 @@ public class ExcelFileGenerator {
                         e.printStackTrace();
                     }
 
+                    //noinspection ConstantConditions
                     if (program.size() == 0) {
                         nonHeaderRow.createCell(nonHeaderRow.getLastCellNum()).setCellValue("");
                     } else {
                         nonHeaderRow.createCell(nonHeaderRow.getLastCellNum()).setCellValue(
-                                        program.get(0).getCongregation().getName()
-                                );
-                        nonHeaderRow.getCell(nonHeaderRow.getLastCellNum() - 1).setCellStyle(centerStyle);
+                            program.get(0).getCongregation().getName()
+                        );
                     }
                 }
+
+                formatRow(nonHeaderRow);
                 ++nextRow;
                 ++weekNumber;
             }
@@ -190,6 +172,7 @@ public class ExcelFileGenerator {
             for (int i = 0; i < totalHorizontalCells; i++) {
                 scheduleSheet.autoSizeColumn(i);
             }
+            scheduleSheet.setFitToPage(true);
         }
 
         try {
@@ -204,7 +187,120 @@ public class ExcelFileGenerator {
         return true;
     }
 
+    private XSSFCellStyle getCellStyle(
+            boolean horizontalCenter,
+            boolean boldText,
+            boolean thickTopBorder,
+            boolean thickBottomBorder,
+            boolean thickRightBorder,
+            boolean thickLeftBorder,
+            boolean colored
+    ) {
+        XSSFCellStyle cellStyle = excelDoc.createCellStyle();
+
+        cellStyle.setWrapText(true);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setAlignment(horizontalCenter ? HorizontalAlignment.CENTER : HorizontalAlignment.LEFT);
+
+        if (boldText) {
+            Font boldFont = excelDoc.createFont();
+            boldFont.setBold(true);
+            boldFont.setFontHeightInPoints((short) 10);
+            cellStyle.setFont(boldFont);
+        }
+        if (thickTopBorder)     cellStyle.setBorderTop(BorderStyle.THICK);
+        if (thickBottomBorder)  cellStyle.setBorderBottom(BorderStyle.THICK);
+        if (thickLeftBorder)    cellStyle.setBorderLeft(BorderStyle.THICK);
+        if (thickRightBorder)   cellStyle.setBorderRight(BorderStyle.THICK);
+        if (colored) {
+            cellStyle.setFillBackgroundColor(new XSSFColor(new java.awt.Color(190, 190, 190)));
+            cellStyle.setFillForegroundColor(new XSSFColor(new java.awt.Color(190, 190, 190)));
+            cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        }
+
+        return cellStyle;
+    }
+
+    private void formatRow(Row row) {
+        final int HEADER_ROW = 0;
+        final int SECOND_ROW = 1;
+        final int LAST_ROW   = 58;
+        
+        switch (row.getRowNum()) {
+            case HEADER_ROW:
+                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                    row.getCell(i).setCellStyle(getCellStyle(true, true, true, false, true, true, true));
+                }
+                // the border between the two header cells must be normal
+                row.getCell(4).getCellStyle().setBorderRight(BorderStyle.THIN);
+                row.getCell(5).getCellStyle().setBorderLeft(BorderStyle.THIN);
+                break;
+            case SECOND_ROW:
+                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                    // the first cell
+                    if (i == 0) {
+                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, false, true, true));
+                    } else if (i == row.getLastCellNum() - 1) { // the last cell
+                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, true, false, true));
+                    } else {
+                        // the cells in the middle are only bold, centered and have bottom borders
+                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, false, false, true));
+                    }
+                    row.getCell(i).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
+
+                }
+                break;
+            case LAST_ROW:
+                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                    if (i == 0) {
+                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, false, true, false));
+                    } else if (i == 1 || i == 2 || i == 4) {
+                        row.getCell(i).setCellStyle(getCellStyle(false, false, false ,true ,false ,false, false));
+                    } else if (i == row.getLastCellNum() - 1) {
+                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, true, false, false));
+                    } else {
+                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, false, false, false));
+                    }
+                }
+                break;
+            default:
+                // if the value in the cell is "1" it means that it is a new-week row
+                if (row.getCell(row.getFirstCellNum()).getNumericCellValue() == 1) {
+                    for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                        if (i == 0) {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, true, true));
+                        } else if (i == 1 || i == 2 || i == 4) {
+                            row.getCell(i).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, true));
+                        } else if (i == row.getLastCellNum() - 1) {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, true, false, true));
+                        } else {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, false, true));
+                        }
+                        row.getCell(i).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
+                    }
+                } else { // else it is a normal row
+                    for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                        if (i == 0) {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, true, false));
+                        } else if (i == 1 || i == 2 || i == 4) {
+                            row.getCell(i).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, false));
+                        } else if (i == row.getLastCellNum() - 1) {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, true, false, false));
+                        } else {
+                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, false, false));
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
     public static void main(String[] args) {
+        System.setProperty("com.j256.ormlite.logger.level", "ERROR");
         ExcelFileGenerator excelFileGenerator = new ExcelFileGenerator();
         excelFileGenerator.createExcel();
     }

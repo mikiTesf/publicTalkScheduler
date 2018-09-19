@@ -64,7 +64,7 @@ public class GeneratorUI extends JFrame {
     private List<Talk> talkList;
 
     public GeneratorUI() {
-        setTitle("የንግግር ፕሮግራም አመንጪ");
+        setTitle(Constants.FRAME_TITLE);
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -91,9 +91,9 @@ public class GeneratorUI extends JFrame {
                 return column != 0;
             }
         };
-        congregationTableModel.addColumn("#");
-        congregationTableModel.addColumn("ስም");
-        congregationTableModel.addColumn("የሽማግሌዎች ብዛት");
+        congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_ID_TITLE);
+        congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_NAME_TITLE);
+        congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_TOTAL_ELDERS_TITLE);
 
         talkTableModel = new DefaultTableModel () {
             @Override
@@ -101,9 +101,9 @@ public class GeneratorUI extends JFrame {
                 return column != 0;
             }
         };
-        talkTableModel.addColumn("#");
-        talkTableModel.addColumn("ርዕስ");
-        talkTableModel.addColumn("ቁጥር");
+        talkTableModel.addColumn(Constants.TALK_TABLE_ID_TITLE);
+        talkTableModel.addColumn(Constants.TALK_TABLE_TITLE_TITLE);
+        talkTableModel.addColumn(Constants.TALK_TABLE_TALK_NUMBER_TITLE);
 
         elderTableModel = new DefaultTableModel () {
             @Override
@@ -111,13 +111,13 @@ public class GeneratorUI extends JFrame {
                 return column != 0;
             }
         };
-        elderTableModel.addColumn("#");
-        elderTableModel.addColumn("ስም");
-        elderTableModel.addColumn("የአባት ስም");
-        elderTableModel.addColumn("የአያት ስም");
-        elderTableModel.addColumn("የስልክ ቁጥር");
-        elderTableModel.addColumn("የንግግር ቁጥር");
-        elderTableModel.addColumn("ጉባኤ");
+        elderTableModel.addColumn(Constants.ELDER_TABLE_ID_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_FIRST_NAME_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_MIDDLE_NAME_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_LAST_NAME_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_PHONE_NUMBER_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_TALK_NUMBER_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_CONGREGATION_TITLE);
 
         // fill the tables on the congregation/talk tab
         Object[] congTalkElderTableRow = new Object[3];
@@ -186,6 +186,12 @@ public class GeneratorUI extends JFrame {
                     congregationTableModel.addRow(congregationDetails);
                     clearFields(Field.CONGREGATION);
                     congregationComboBox.addItem(congregation.getName());
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.CONGREGATION_ADDED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -200,10 +206,16 @@ public class GeneratorUI extends JFrame {
                 Congregation congregation = new Congregation();
                 congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
                 congregation.setName(congregationTable.getValueAt(selectedRow, 1).toString());
-                congregation.setTotalElders((int) congregationTable.getValueAt(selectedRow, 2));
+                congregation.setTotalElders(Integer.parseInt(congregationTable.getValueAt(selectedRow, 2).toString()));
                 try {
                     Congregation.getCongregationDao().update(congregation);
                     refreshCongregationComboBox();
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.CONGREGATION_UPDATED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -224,6 +236,12 @@ public class GeneratorUI extends JFrame {
                     talkDetails[1] = talk.getTalkNumber();
                     clearFields(Field.TALK);
                     talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.TALK_ADDED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -243,6 +261,12 @@ public class GeneratorUI extends JFrame {
                 try {
                     Talk.getTalkDao().update(talk);
                     refreshTalkComboBox();
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.TALK_UPDATED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -314,6 +338,12 @@ public class GeneratorUI extends JFrame {
                     elderDetails[6] = elder.getCongregation().getName();
                     elderTableModel.addRow(elderDetails);
                     clearFields(Field.ELDER);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.ELDER_ADDED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -358,6 +388,12 @@ public class GeneratorUI extends JFrame {
 
                 try {
                     Elder.getElderDao().update(elder);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.ELDER_UPDATED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -374,7 +410,12 @@ public class GeneratorUI extends JFrame {
                             .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
                     congregationTableModel.removeRow(selectedRow);
                     congregationComboBox.removeItem(congName);
-                    JOptionPane.showMessageDialog(frame, "ንግግሩ ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.CONGREGATION_REMOVED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -389,12 +430,17 @@ public class GeneratorUI extends JFrame {
                     String talkNumberPlusTitle = talkTable.getValueAt(selectedRow, 2)
                             + talkTable.getValueAt(selectedRow, 1).toString();
                     Talk.getTalkDao().deleteById((int) talkTable.getValueAt(selectedRow, 0));
+                    talkTableModel.removeRow(selectedRow);
                     talkNumberComboBox.removeItem(talkNumberPlusTitle);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.TALK_REMOVED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                talkTableModel.removeRow(selectedRow);
-                JOptionPane.showMessageDialog(frame, "ጉባኤው ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -404,11 +450,16 @@ public class GeneratorUI extends JFrame {
                 int elderID = (int) elderTable.getValueAt(elderTable.getSelectedRow(), 0);
                 try {
                     Elder.getElderDao().deleteById(elderID);
+                    elderTableModel.removeRow(elderTable.getSelectedRow());
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.ELDER_REMOVED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-                elderTableModel.removeRow(elderTable.getSelectedRow());
-                JOptionPane.showMessageDialog(frame, "ተናጋሪው ወጥቷል", null, JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
