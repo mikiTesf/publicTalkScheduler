@@ -7,6 +7,7 @@ import com.j256.ormlite.table.DatabaseTable;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 @DatabaseTable
 public class Elder {
@@ -109,6 +110,22 @@ public class Elder {
 
     public static Dao<Elder, Integer> getElderDao () {
         return elderDao;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Elder elder = (Elder) o;
+        return id == elder.getId();
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, toString());
     }
 
 }

@@ -19,7 +19,8 @@ public class ProgramGenerator {
     private List <Elder> allElders;
     private List<Congregation> allCongregations;
     private List<LocalDate> programDates;
-    float totalFreeWeeksForCongregation;
+    private float totalFreeWeeksForCongregation;
+    private Map<Congregation, Integer> totalEldersInCong;
 
 
     public ProgramGenerator(LocalDate startDate, LocalDate endDate) throws SQLException {
@@ -27,6 +28,7 @@ public class ProgramGenerator {
         this.endDate     = endDate;
         allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
         allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
+        totalEldersInCong = totalEldersInCongregation();
         generateProgramDates();
         totalFreeWeeksForCongregation = programDates.size() - allElders.size();
     }
@@ -47,6 +49,20 @@ public class ProgramGenerator {
         this.endDate = endDate;
     }
 
+
+
+    private Map<Congregation, Integer> totalEldersInCongregation() throws SQLException {
+
+        Map <Congregation, Integer> totalEldersInCong = new HashMap<>();
+
+        for (Congregation c: allCongregations){
+            int count = Elder.getElderDao().queryBuilder().where().eq("congregation_id", c).query().size();
+            totalEldersInCong.put(c, count);
+        }
+
+        return totalEldersInCong;
+    }
+
     private void generateProgramForWeek(LocalDate week, List<Congregation> congregations) throws SQLException {
 
         Date programDate = ProgramDate.localDateToDate(week);
@@ -63,24 +79,24 @@ public class ProgramGenerator {
 
                 Map<Elder, Double> eldersRank = getEldersRank(week, congregation);
                 List<Elder> rankingElders = new ArrayList<>();
-                Double maxRank = Collections.max(eldersRank.values());
 
-                for (Elder key : eldersRank.keySet()) {
+                if (eldersRank.size() > 0){
 
-                    if (eldersRank.get(key).equals(maxRank)) {
-                        rankingElders.add(key);
+                    Double maxRank = Collections.max(eldersRank.values());
+                    for (Elder key : eldersRank.keySet()) {
+
+                        if (eldersRank.get(key).equals(maxRank)) {
+                            rankingElders.add(key);
+                        }
                     }
-                }
-
-                // if there are no candidate elders or the maxRank is zero, not fit, just make it free.
-                if (rankingElders.size() == 0 ){
-                    program = new Program(programDate, congregation, true);
-                }
-                else {
 
                     Random rand = new Random();
                     Elder elder = rankingElders.get(rand.nextInt(rankingElders.size()));
                     program = new Program(programDate, congregation, elder);
+                }
+                else {
+                    // if there are no candidate elders or the maxRank is zero, not fit, just make it free.
+                    program = new Program(programDate, congregation, true);
                 }
             }
             program.save();
@@ -89,7 +105,7 @@ public class ProgramGenerator {
 
     private boolean weekShouldBeFree(LocalDate week, Congregation congregation) throws SQLException {
 
-        double currentWeekNumber = distanceBetweenTwoDates(startDate, week);
+        double currentWeekNumber = weeksBetweenTwoDates(startDate, week) + 1;
         double expectedNumberOfFrees = (totalFreeWeeksForCongregation * currentWeekNumber) / programDates.size();
         double actualNumberOfFrees = getNumberOfFreesForCongregation(congregation);
 
@@ -128,7 +144,6 @@ public class ProgramGenerator {
 
             for (Program program : programsForCongregation){
 
-                Elder.getElderDao().refresh(program.getElder());
                 eldersWhoGaveTalkInThisCongregation.add(program.getElder());
             }
 
@@ -145,8 +160,8 @@ public class ProgramGenerator {
     private Map<Elder,Double> getEldersRank(LocalDate week, Congregation congregation) throws SQLException {
 
         Map <Elder, Double> eldersRank = new HashMap<>();
-        List<Elder> viableElders = Elder.getElderDao().queryForAll();
-        //List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
+        //List<Elder> viableElders = Elder.getElderDao().queryForAll();
+        List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
         //viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, Constants.MINIMUM_FREE_WEEKS);
         //viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders, Constants.MINIMUM_ELDERS_LEFT_IN_CONG);
 
@@ -179,9 +194,9 @@ public class ProgramGenerator {
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
-        return Elder.getElderDao().queryBuilder()
-                .where().eq("congregation_id", elder.getCongregation()).query()
-                .get(0).getCongregation().getTotalElders();
+
+        Congregation.getCongregationDao().refresh(elder.getCongregation());
+        return totalEldersInCong.get(elder.getCongregation());
     }
 
     private double totalTalksGivenByElder(Elder elder) throws SQLException {
@@ -212,7 +227,7 @@ public class ProgramGenerator {
         return 1;
     }
 
-    private double distanceBetweenTwoDates (LocalDate oldest, LocalDate latest){
+    private double weeksBetweenTwoDates(LocalDate oldest, LocalDate latest){
 
         if (oldest.isBefore(latest)){
 
@@ -226,13 +241,18 @@ public class ProgramGenerator {
         List<Program> programs = Program.getProgramDao().queryBuilder()
                 .where().eq("elder_id", elder).query();
 
-        LocalDate lastTalkDate = startDate;
-        if (programs.size() > 0){
-            lastTalkDate = ProgramDate.dateToLocalDate(programs.get(programs.size() - 1).getDate());
+        List<LocalDate> progDates = new ArrayList<>();
+
+        for (Program p: programs){
+            progDates.add(ProgramDate.dateToLocalDate(p.getDate()));
         }
 
-        double distance = (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week)) - Constants.MINIMUM_FREE_WEEKS;
-        return distance < 0? 0 : distance;
+        LocalDate lastTalkDate = startDate.minusWeeks(allCongregations.size());
+        if (progDates.size() > 0){
+            lastTalkDate = Collections.max(progDates);
+        }
+
+        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week)) - Constants.MINIMUM_FREE_WEEKS;
     }
 
     public void doGenerate () throws SQLException {

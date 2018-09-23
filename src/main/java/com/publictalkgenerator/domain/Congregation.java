@@ -7,6 +7,7 @@ import com.j256.ormlite.table.DatabaseTable;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 @DatabaseTable
 public class Congregation {
@@ -74,5 +75,21 @@ public class Congregation {
 
     public static Dao<Congregation, Integer> getCongregationDao () {
         return congregationDao;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Congregation cong = (Congregation) o;
+        return id == cong.getId();
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
     }
 }
