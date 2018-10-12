@@ -162,8 +162,8 @@ public class ProgramGenerator {
         Map <Elder, Double> eldersRank = new HashMap<>();
         //List<Elder> viableElders = Elder.getElderDao().queryForAll();
         List<Elder> viableElders = getEldersWhoDidntGiveTalkInACongregation(congregation);
-        //viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, Constants.MINIMUM_FREE_WEEKS);
-        //viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders, Constants.MINIMUM_ELDERS_LEFT_IN_CONG);
+        viableElders = removeEldersWithLeftEldersInCongregationBelowMinimum (viableElders, week);
+        viableElders = removeEldersWhoGaveTalkIn_N_Weeks (viableElders, week);
 
         for (Elder elder : viableElders){
 
@@ -173,29 +173,46 @@ public class ProgramGenerator {
         return eldersRank;
     }
 
-    // TODO implement removeEldersWithLeftEldersInCongregationBelowMinimum --> not needed for now but maybe it will improve program quality
-    private List<Elder> removeEldersWithLeftEldersInCongregationBelowMinimum(List<Elder> viableElders, int minimumEldersLeftInCong) {
+    private List<Elder> removeEldersWithLeftEldersInCongregationBelowMinimum(List<Elder> elders, LocalDate week) throws SQLException {
+
+        List<Elder> viableElders = new ArrayList<>();
+
+        for (Elder e : elders){
+
+            if (eldersRemainingInCongregation(week, e) > Constants.MINIMUM_ELDERS_LEFT_IN_CONG){
+                viableElders.add(e);
+            }
+        }
         return viableElders;
     }
 
-    // TODO implement removeEldersWhoGaveTalkIn_N_Weeks --> not needed for now but maybe it will improve program quality
-    private List<Elder> removeEldersWhoGaveTalkIn_N_Weeks(List<Elder> eldersWhoDidntGiveTalkInThisCongregation, int minimumFreeWeeks) {
-        return eldersWhoDidntGiveTalkInThisCongregation;
+    private List<Elder> removeEldersWhoGaveTalkIn_N_Weeks(List<Elder> elders, LocalDate week) throws SQLException {
+
+        List<Elder> viableElders = new ArrayList<>();
+
+        for (Elder e : elders){
+
+            if (distanceFromLastTalk(e, week) >= Constants.MINIMUM_FREE_WEEKS){
+                viableElders.add(e);
+            }
+        }
+        return viableElders;
     }
 
     private double calculateElderRank(LocalDate week, Elder elder, Congregation congregation) throws SQLException {
 
         // TODO make sure no two elders get same ranking as much as possible
-        double rank = (
-                    distanceFromLastTalk(elder, week) * elderRepeatingInCongregationFactor(elder, congregation) * eldersRemainingInCongregation (week, elder) ) /
-                    ((totalTalksGivenByElder(elder) + 1) * totalEldersInTheElderCongregation(elder)
-                );
-        return rank;
+        double dist = distanceFromLastTalk(elder, week);
+        //double rept = elderRepeatingInCongregationFactor(elder, congregation);
+        double elrm = eldersRemainingInCongregation (week, elder);
+        double totk = totalTalksGivenByElder(elder);
+        double toel = totalEldersInTheElderCongregation(elder);
+
+        return ( dist  + allCongregations.size()  - totk);
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
 
-        Congregation.getCongregationDao().refresh(elder.getCongregation());
         return totalEldersInCong.get(elder.getCongregation());
     }
 
@@ -208,12 +225,11 @@ public class ProgramGenerator {
 
     private double eldersRemainingInCongregation(LocalDate week, Elder elder) throws SQLException {
         Date programDate = ProgramDate.localDateToDate(week);
-        Congregation.getCongregationDao().refresh(elder.getCongregation());
         List<Program> programs = Program.getProgramDao().queryBuilder()
                 .where().eq("congregation_id", elder.getCongregation()).and().eq("date", programDate).query();
 
-        double remainingElders = totalEldersInTheElderCongregation(elder) - programs.size() - Constants.MINIMUM_ELDERS_LEFT_IN_CONG;
-        return remainingElders < 0? 0: remainingElders;
+        double remainingElders = totalEldersInTheElderCongregation(elder) - programs.size();
+        return remainingElders;
     }
 
     private double elderRepeatingInCongregationFactor(Elder elder, Congregation congregation) throws SQLException {
