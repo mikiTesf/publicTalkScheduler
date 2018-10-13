@@ -58,6 +58,10 @@ public class Constants {
     public static final String ELDER_TABLE_PHONE_NUMBER_TITLE = "የስልክ ቁጥር";
     public static final String ELDER_TABLE_TALK_NUMBER_TITLE  = "የንግግር ቁጥር";
     public static final String ELDER_TABLE_CONGREGATION_TITLE = "ጉባኤ";
+    // button names
+    public static final String ADD_RECORD    = "ጨምር";
+    public static final String UPDATE_RECORD = "አዘምን";
+    public static final String REMOVE_RECORD = "ሰርዝ";
     // ****************** JOptionPane dialogue messages ******************
     // JOptionPane dialogue box titles
     public static final String SUCCESS_TITLE = "ተሳክቷል";

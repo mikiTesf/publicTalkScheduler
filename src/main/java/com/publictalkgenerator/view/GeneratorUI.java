@@ -1,10 +1,12 @@
 package com.publictalkgenerator.view;
 
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
 import com.publictalkgenerator.controller.ProgramGenerator;
 import com.publictalkgenerator.domain.Congregation;
+import com.publictalkgenerator.domain.InstructionMessage;
 import com.publictalkgenerator.domain.Talk;
 import com.publictalkgenerator.domain.Elder;
 
@@ -59,7 +61,11 @@ public class GeneratorUI extends JFrame {
     private JButton updateCongregationButton;
     private JButton updateTalkButton;
     private JButton updateElderButton;
-    private JSpinner totalEldersSpinner;
+    private JButton boldButton;
+    private JButton underlineButton;
+    private JButton italicButton;
+    private JTextArea instructionTextArea;
+    private JButton saveButton;
     private List<Congregation> congList;
     private List<Talk> talkList;
 
@@ -84,6 +90,10 @@ public class GeneratorUI extends JFrame {
             e.printStackTrace();
         }
 
+        addCongregationButton.setText(Constants.ADD_RECORD);
+        updateCongregationButton.setText(Constants.UPDATE_RECORD);
+        removeCongregationButton.setText(Constants.REMOVE_RECORD);
+
         // setting up the TableModel(s) for congregation, talk and elder
         congregationTableModel = new DefaultTableModel () {
             @Override
@@ -93,7 +103,10 @@ public class GeneratorUI extends JFrame {
         };
         congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_ID_TITLE);
         congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_NAME_TITLE);
-        congregationTableModel.addColumn(Constants.CONGREGATION_TABLE_TOTAL_ELDERS_TITLE);
+
+        addTalkButton.setText(Constants.ADD_RECORD);
+        updateTalkButton.setText(Constants.UPDATE_RECORD);
+        removeTalkButton.setText(Constants.REMOVE_RECORD);
 
         talkTableModel = new DefaultTableModel () {
             @Override
@@ -104,6 +117,10 @@ public class GeneratorUI extends JFrame {
         talkTableModel.addColumn(Constants.TALK_TABLE_ID_TITLE);
         talkTableModel.addColumn(Constants.TALK_TABLE_TITLE_TITLE);
         talkTableModel.addColumn(Constants.TALK_TABLE_TALK_NUMBER_TITLE);
+
+        addElderButton.setText(Constants.ADD_RECORD);
+        updateElderButton.setText(Constants.UPDATE_RECORD);
+        removeElderButton.setText(Constants.REMOVE_RECORD);
 
         elderTableModel = new DefaultTableModel () {
             @Override
@@ -120,11 +137,10 @@ public class GeneratorUI extends JFrame {
         elderTableModel.addColumn(Constants.ELDER_TABLE_CONGREGATION_TITLE);
 
         // fill the tables on the congregation/talk tab
-        Object[] congTalkElderTableRow = new Object[3];
+        Object[] congTalkElderTableRow = new Object[2];
         for (Congregation cong : congList) {
             congTalkElderTableRow[0] = cong.getId();
             congTalkElderTableRow[1] = cong.getName();
-            congTalkElderTableRow[2] = cong.getTotalElders();
             congregationTableModel.addRow(congTalkElderTableRow);
         }
 
@@ -147,6 +163,7 @@ public class GeneratorUI extends JFrame {
             elderTableRows[6] = elder.getCongregation().getName();
             elderTableModel.addRow(elderTableRows);
         }
+
         // fill congregation and talk comboBoxes in the ተናጋሪ tab
         for (Congregation congregation : congList) {
             congregationComboBox.addItem(congregation.getName());
@@ -158,12 +175,26 @@ public class GeneratorUI extends JFrame {
 
         congregationTable.setModel(congregationTableModel);
         congregationTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        if (congregationTable.getRowCount() > 0) {
+            congregationTable.getColumnModel().getColumn(0).setMinWidth(50);
+            congregationTable.getColumnModel().getColumn(0).setMaxWidth(50);
+        }
 
         talkTable.setModel(talkTableModel);
         talkTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        if (talkTable.getRowCount() > 0) {
+            talkTable.getColumnModel().getColumn(0).setMinWidth(50);
+            talkTable.getColumnModel().getColumn(0).setMaxWidth(50);
+            talkTable.getColumnModel().getColumn(2).setMinWidth(60);
+            talkTable.getColumnModel().getColumn(2).setMaxWidth(60);
+        }
 
         elderTable.setModel(elderTableModel);
         elderTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        if (elderTable.getRowCount() > 0) {
+            elderTable.getColumnModel().getColumn(0).setMinWidth(50);
+            elderTable.getColumnModel().getColumn(0).setMaxWidth(50);
+        }
 
         congTabelScrollPane.setPreferredSize(new Dimension(400, 150));
         talkTableScrollPane.setPreferredSize(new Dimension(400, 150));
@@ -176,13 +207,11 @@ public class GeneratorUI extends JFrame {
                     return;
 
                 Congregation congregation = new Congregation(congregationNameField.getText());
-                congregation.setTotalElders((int) totalEldersSpinner.getValue());
                 try {
                     congregation = Congregation.getCongregationDao().createIfNotExists(congregation);
-                    Object[] congregationDetails = new Object[3];
+                    Object[] congregationDetails = new Object[2];
                     congregationDetails[0] = congregation.getId();
                     congregationDetails[1] = congregation.getName();
-                    congregationDetails[2] = congregation.getTotalElders();
                     congregationTableModel.addRow(congregationDetails);
                     clearFields(Field.CONGREGATION);
                     congregationComboBox.addItem(congregation.getName());
@@ -206,7 +235,6 @@ public class GeneratorUI extends JFrame {
                 Congregation congregation = new Congregation();
                 congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
                 congregation.setName(congregationTable.getValueAt(selectedRow, 1).toString());
-                congregation.setTotalElders(Integer.parseInt(congregationTable.getValueAt(selectedRow, 2).toString()));
                 try {
                     Congregation.getCongregationDao().update(congregation);
                     refreshCongregationComboBox();
@@ -405,17 +433,39 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
                 try {
-                    String congName = congregationTable.getValueAt(selectedRow, 1).toString();
-                    Congregation.getCongregationDao()
-                            .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
-                    congregationTableModel.removeRow(selectedRow);
-                    congregationComboBox.removeItem(congName);
-                    JOptionPane.showMessageDialog(
-                            frame,
-                            Constants.CONGREGATION_REMOVED_MESSAGE,
-                            Constants.SUCCESS_TITLE,
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
+                    Congregation congregation = Congregation.getCongregationDao()
+                            .queryBuilder().where()
+                            .eq("id", congregationTable.getValueAt(selectedRow, 0))
+                            .query().get(0);
+
+                    List<Elder> eldersInCongregation = Elder.getElderDao()
+                            .queryBuilder().where()
+                            .eq("congregation_id", congregation)
+                            .query();
+
+                    StringBuilder eldersNameList = new StringBuilder();
+                    for (Elder elder : eldersInCongregation) {
+                        eldersNameList.append("\t- ").append(elder.getFirstName()).append(" ").append(elder.getMiddleName()).append("\n");
+                    }
+
+                    int choice = JOptionPane.showConfirmDialog(frame, "ሽማግሌ(ዎች):\n" + eldersNameList.toString() + "አብረው ይሰረዛሉ።", null, JOptionPane.YES_NO_OPTION);
+
+                    if (choice == JOptionPane.YES_OPTION) {
+                        DeleteBuilder<Elder, Integer> elderDeleteBuilder = Elder.getElderDao().deleteBuilder();
+                        elderDeleteBuilder.where().eq("congregation_id", congregation);
+                        elderDeleteBuilder.delete();
+                        Congregation.getCongregationDao()
+                                .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
+                        congregationTableModel.removeRow(selectedRow);
+                        congregationComboBox.removeItem(congregation.getName());
+
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                Constants.CONGREGATION_REMOVED_MESSAGE,
+                                Constants.SUCCESS_TITLE,
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -463,7 +513,6 @@ public class GeneratorUI extends JFrame {
             }
         });
 
-        totalEldersSpinner.setModel(new SpinnerNumberModel(1, 1, 100, 1));
         startDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
         endDateDaySpinner.setModel(new SpinnerNumberModel(1, 1, 31, 1));
         startDateYearSpinner.setModel(new SpinnerNumberModel(2018, 2018, 3000, 1));
@@ -498,6 +547,45 @@ public class GeneratorUI extends JFrame {
                 fileGenerator.createExcel();
             }
         });
+
+        boldButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedText = instructionTextArea.getSelectedText();
+                if (!(selectedText == null)) {
+                    instructionTextArea.replaceSelection("[b]" + selectedText + "[/b]");
+                }
+            }
+        });
+
+        italicButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedText = instructionTextArea.getSelectedText();
+                if (!(selectedText == null)) {
+                    instructionTextArea.replaceSelection("[t]" + selectedText + "[/t]");
+                }
+            }
+        });
+
+        underlineButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedText = instructionTextArea.getSelectedText();
+                if (!(selectedText == null)) {
+                    instructionTextArea.replaceSelection("[u]" + selectedText + "[/u]");
+                }
+            }
+        });
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                InstructionMessage message = new InstructionMessage();
+                message.setMessage(instructionTextArea.getText());
+                message.save();
+            }
+        });
     }
 
     public void constructUI () {
@@ -505,6 +593,7 @@ public class GeneratorUI extends JFrame {
 
         pack();
         setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(500, 550));
         setResizable(true);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

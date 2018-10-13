@@ -4,14 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
+import com.publictalkgenerator.domain.InstructionMessage;
 import com.publictalkgenerator.domain.Program;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -168,6 +166,9 @@ public class ExcelFileGenerator {
                 ++nextRow;
                 ++weekNumber;
             }
+
+            parseInstructionMessageAndPutInSheet(scheduleSheet);
+
             // auto-size all columns
             for (int i = 0; i < totalHorizontalCells; i++) {
                 scheduleSheet.autoSizeColumn(i);
@@ -299,8 +300,55 @@ public class ExcelFileGenerator {
         }
     }
 
+    private void parseInstructionMessageAndPutInSheet (XSSFSheet sheet) {
+//        InstructionMessage instructionMessage = null;
+//        try {
+//            /* TODO: change "queryForId(1)" in the next line
+//            * You should make the user either choose from a previously used instruction
+//            * or use the last saved instruction
+//            * */
+//            instructionMessage = InstructionMessage.messageIntegerDao.queryForId(1);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        String[] instructionLines = instructionMessage.getMessage().split("\n");
+//        for (String instruction : instructionLines) {
+//            XSSFRichTextString formattedInstruction = new XSSFRichTextString();
+//            int boldStartIndex;
+//            int boldEndIndex;
+//            int italicStartIndex;
+//            int italicEndIndex;
+//            int underlineStartIndex;
+//            int underlineEndIndex;
+//
+//            int firstOfAngleBrace = instruction.indexOf("[");
+//            switch (instruction.substring(firstOfAngleBrace + 1, firstOfAngleBrace + 2)) {
+//                case "b":
+//                    boldStartIndex = firstOfAngleBrace + 3;
+//                    instruction = instruction.replaceFirst("\\[", "");
+//                    instruction = instruction.replaceFirst("b", "");
+//                    instruction = instruction.replaceFirst("]", "");
+//                    boldEndIndex = instruction.indexOf("[/b]") - 1;
+//                    instruction = instruction.replaceFirst("\\[", "");
+//                    instruction = instruction.replaceFirst("/", "");
+//                    instruction = instruction.replaceFirst("b", "");
+//                    instruction = instruction.replaceFirst("]", "");
+//                    break;
+//                case "i":
+//                    break;
+//                case "u":
+//                    break;
+//                default:
+//                    break;
+//            }
+//            formattedInstruction.setString(instruction);
+//            XSSFFont font = excelDoc.createFont()
+//        }
+    }
+
     public static void main(String[] args) {
-        System.setProperty("com.j256.ormlite.logger.level", "ERROR");
+        //System.setProperty("com.j256.ormlite.logger.level", "ERROR");
         ExcelFileGenerator excelFileGenerator = new ExcelFileGenerator();
         excelFileGenerator.createExcel();
     }

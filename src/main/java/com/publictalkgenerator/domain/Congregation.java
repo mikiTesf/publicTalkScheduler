@@ -15,8 +15,6 @@ public class Congregation {
     private int id;
     @DatabaseField
     private String name;
-    @DatabaseField (canBeNull = false)
-    private int totalElders;
 
     private static Dao<Congregation, Integer> congregationDao;
 
@@ -49,14 +47,6 @@ public class Congregation {
 
     public int getId() {
         return id;
-    }
-
-    public int getTotalElders() {
-        return totalElders;
-    }
-
-    public void setTotalElders(int totalElders) {
-        this.totalElders = totalElders;
     }
 
     @Override
