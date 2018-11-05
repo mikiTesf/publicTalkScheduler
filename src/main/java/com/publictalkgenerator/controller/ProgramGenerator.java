@@ -209,7 +209,7 @@ public class ProgramGenerator {
         double totk = totalTalksGivenByElder(elder);
         double toel = totalEldersInTheElderCongregation(elder);
 
-        return ( dist  + elrm  - totk);
+        return ( dist  - totk/allCongregations.size())* (elrm - 1)/toel;
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
@@ -229,8 +229,7 @@ public class ProgramGenerator {
         List<Program> programs = Program.getProgramDao().queryBuilder()
                 .where().eq("congregation_id", elder.getCongregation()).and().eq("date", programDate).query();
 
-        double remainingElders = totalEldersInTheElderCongregation(elder) - programs.size();
-        return remainingElders;
+        return totalEldersInTheElderCongregation(elder) - programs.size();
     }
 
     private double elderRepeatingInCongregationFactor(Elder elder, Congregation congregation) throws SQLException {
@@ -264,12 +263,12 @@ public class ProgramGenerator {
             progDates.add(ProgramDate.dateToLocalDate(p.getDate()));
         }
 
-        LocalDate lastTalkDate = startDate.minusWeeks(allCongregations.size());
+        LocalDate lastTalkDate = week.minusWeeks(allCongregations.size());
         if (progDates.size() > 0){
             lastTalkDate = Collections.max(progDates);
         }
 
-        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week)) - Constants.MINIMUM_FREE_WEEKS;
+        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week));
     }
 
     public void doGenerate () throws SQLException {
