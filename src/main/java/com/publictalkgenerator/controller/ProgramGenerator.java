@@ -109,10 +109,11 @@ public class ProgramGenerator {
         double expectedNumberOfFrees = (totalFreeWeeksForCongregation * currentWeekNumber) / programDates.size();
         double actualNumberOfFrees = getNumberOfFreesForCongregation(congregation);
 
-        if (actualNumberOfFrees < expectedNumberOfFrees){
+        if (actualNumberOfFrees < expectedNumberOfFrees && percentageOfFreeCongregationsInAWeek(week) <= Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK){
 
             // prevent too many free congregations on the same week
-            return percentageOfFreeCongregationsInAWeek(week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK;
+            //return percentageOfFreeCongregationsInAWeek(week) < Constants.PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK;
+            return true;
         }
         return false;
     }
@@ -208,7 +209,7 @@ public class ProgramGenerator {
         double totk = totalTalksGivenByElder(elder);
         double toel = totalEldersInTheElderCongregation(elder);
 
-        return ( dist  + allCongregations.size()  - totk);
+        return ( dist  + elrm  - totk);
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {

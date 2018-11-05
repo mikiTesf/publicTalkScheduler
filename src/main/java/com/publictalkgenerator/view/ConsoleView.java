@@ -17,6 +17,7 @@ public class ConsoleView {
     static final int colWidth = 15;
 
     public ConsoleView() throws SQLException {
+        System.setProperty("com.j256.ormlite.logger.level", "ERROR");
         allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
         allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
     }
