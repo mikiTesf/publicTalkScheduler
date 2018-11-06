@@ -209,7 +209,7 @@ public class ProgramGenerator {
         double totk = totalTalksGivenByElder(elder);
         double toel = totalEldersInTheElderCongregation(elder);
 
-        return ( dist  + elrm  - totk);
+        return ( dist/10 - totk/allCongregations.size()) * (elrm - 1)/toel;
     }
 
     private double totalEldersInTheElderCongregation(Elder elder) throws SQLException {
@@ -227,10 +227,16 @@ public class ProgramGenerator {
     private double eldersRemainingInCongregation(LocalDate week, Elder elder) throws SQLException {
         Date programDate = ProgramDate.localDateToDate(week);
         List<Program> programs = Program.getProgramDao().queryBuilder()
-                .where().eq("congregation_id", elder.getCongregation()).and().eq("date", programDate).query();
+                .where().eq("date", programDate).and().eq("isFree",false).query();
 
-        double remainingElders = totalEldersInTheElderCongregation(elder) - programs.size();
-        return remainingElders;
+        int count = 0;
+        for (Program program : programs){
+            if (program.getElder().getCongregation().equals(elder.getCongregation())) {
+                count++;
+            }
+        }
+
+        return totalEldersInTheElderCongregation(elder) - count;
     }
 
     private double elderRepeatingInCongregationFactor(Elder elder, Congregation congregation) throws SQLException {
@@ -264,12 +270,12 @@ public class ProgramGenerator {
             progDates.add(ProgramDate.dateToLocalDate(p.getDate()));
         }
 
-        LocalDate lastTalkDate = startDate.minusWeeks(allCongregations.size());
+        LocalDate lastTalkDate = week.minusWeeks(allCongregations.size());
         if (progDates.size() > 0){
             lastTalkDate = Collections.max(progDates);
         }
 
-        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week)) - Constants.MINIMUM_FREE_WEEKS;
+        return (double) ( ChronoUnit.WEEKS.between(lastTalkDate, week));
     }
 
     public void doGenerate () throws SQLException {
