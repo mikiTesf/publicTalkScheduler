@@ -9,7 +9,7 @@ import java.util.*;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
-import com.publictalkgenerator.domain.InstructionMessage;
+//import com.publictalkgenerator.domain.InstructionMessage;
 import com.publictalkgenerator.domain.Program;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -40,7 +40,7 @@ public class ExcelFileGenerator {
         }
     }
 
-    public boolean createExcel () {
+    public void createExcel () {
         // the main loop that populates the sheet for each congregation
         for (Congregation congregation : congregations) {
             // create a sheet named after the congregation
@@ -68,17 +68,17 @@ public class ExcelFileGenerator {
             }
 
             //noinspection ConstantConditions
-            int totalHorizontalCells = 5 + elderList.size();
+            int totalColumnsInSheet = 5 + elderList.size();
 
-            for (int i = 0 ; i < totalHorizontalCells; i++) {
-                headerRow.createCell(i);
+            for (int column = 0 ; column < totalColumnsInSheet; column++) {
+                headerRow.createCell(column);
             }
             // writing the title of the first column (row 0) and merging the first 5 cells
             headerRow.getCell(headerRow.getFirstCellNum()).setCellValue(congregation.getName());
             scheduleSheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
             // writing the title of the second column (row 0) and merging the next n cells
             headerRow.getCell(5).setCellValue("ከጉባኤ የሚሄዱ");
-            scheduleSheet.addMergedRegion(new CellRangeAddress(0, 0, 5, totalHorizontalCells - 1));
+            scheduleSheet.addMergedRegion(new CellRangeAddress(0, 0, 5, totalColumnsInSheet - 1));
             formatRow(headerRow);
             // give titles to the first 6 columns (cells) of the next row
             Row row2 = scheduleSheet.createRow(1);
@@ -167,11 +167,11 @@ public class ExcelFileGenerator {
                 ++weekNumber;
             }
 
-            parseInstructionMessageAndPutInSheet(scheduleSheet);
+            insertInstructionMessage(scheduleSheet);
 
             // auto-size all columns
-            for (int i = 0; i < totalHorizontalCells; i++) {
-                scheduleSheet.autoSizeColumn(i);
+            for (int column = 0; column < totalColumnsInSheet; column++) {
+                scheduleSheet.autoSizeColumn(column);
             }
             scheduleSheet.setFitToPage(true);
         }
@@ -183,9 +183,7 @@ public class ExcelFileGenerator {
             out.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            return false;
         }
-        return true;
     }
 
     private XSSFCellStyle getCellStyle(
@@ -224,6 +222,36 @@ public class ExcelFileGenerator {
         }
 
         return cellStyle;
+    }
+
+    private void insertInstructionMessage (XSSFSheet sheet) {
+        XSSFRichTextString richTextString = new XSSFRichTextString();
+        XSSFFont font = excelDoc.createFont();
+
+        font.setBold(true);
+        font.setUnderline(Font.U_SINGLE);
+
+        richTextString.setString("ለአስተባባሪው");
+        richTextString.applyFont(font);
+        sheet.createRow(sheet.getLastRowNum() + 2).createCell(0).setCellValue(richTextString);
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue("እባክህ ተጋባዥ ተናጋሪውን እጅግ ቢዘገይ እስከ ማክሰኞ ደውለህ አስታውሰው።");
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue("ይህን ፕሮግራም እንደደረሰህ እባክህ ከጉባኤህ ውስጥ ለተመደቡት ተናጋሪዎች ፎቶ ኮፒ አድርገህ መስጠትህን አትዘንጋ።");
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+
+        richTextString.setString("ለተናጋሪዎች");
+        richTextString.applyFont(font);
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue(richTextString);
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue("1. ንግግሩ እንደደረሰህ ዝግጅትህን በማጠናቀቅ በፕሮግራምህ መሠረት ንግግርህን መስጠት ይጠበቅብሃል፡፡");
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue("2. ዝግጅት ስታደርግ ማስተካከያ የተደረገበትን ትምህርት ለመጠቀምህ እርግጠኛ ሁን።");
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
+        sheet.createRow(sheet.getLastRowNum() + 1).createCell(0).setCellValue("3. ንግግር በምትሰጥበት ቀን የተለየ ፕሮግራም ካለህ እባክህ አስቀድመህ ንግግር ለምታቀርብበት ጉባኤ አስተባባሪ ንገር።");
+        sheet.addMergedRegion(new CellRangeAddress(sheet.getLastRowNum(), sheet.getLastRowNum(), 0, 7));
     }
 
     private void formatRow(Row row) {
@@ -300,7 +328,7 @@ public class ExcelFileGenerator {
         }
     }
 
-    private void parseInstructionMessageAndPutInSheet (XSSFSheet sheet) {
+//    private void parseInstructionMessageAndPutInSheet (XSSFSheet sheet) {
 //        InstructionMessage instructionMessage = null;
 //        try {
 //            /* TODO: change "queryForId(1)" in the next line
@@ -345,7 +373,7 @@ public class ExcelFileGenerator {
 //            formattedInstruction.setString(instruction);
 //            XSSFFont font = excelDoc.createFont()
 //        }
-    }
+//    }
 
     public static void main(String[] args) {
         //System.setProperty("com.j256.ormlite.logger.level", "ERROR");

@@ -539,12 +539,12 @@ public class GeneratorUI extends JFrame {
                 try {
                     ProgramGenerator generator = new ProgramGenerator(startDate, endDate);
                     generator.doGenerate();
+                    ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+                    fileGenerator.createExcel();
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
 
-                ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
-                fileGenerator.createExcel();
             }
         });
 
