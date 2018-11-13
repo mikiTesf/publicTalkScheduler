@@ -5,7 +5,10 @@ import java.util.HashMap;
 public class Constants {
     public static final HashMap<String, Integer> monthNumber;
     public static final HashMap<Integer, String> monthName;
+
     static {
+        /* The Calendar object used in ExcelFileGenerator.java represent's the 12th month with 0,
+           hence the pairing of ታህሳሥ with 0 */
         monthNumber = new HashMap<>();
         monthNumber.put("ጥር", 1);
         monthNumber.put("የካቲት", 2);
@@ -18,7 +21,7 @@ public class Constants {
         monthNumber.put("መስከረም", 9);
         monthNumber.put("ጥቅምት", 10);
         monthNumber.put("ህዳር", 11);
-        monthNumber.put("ታህሳሥ", 12);
+        monthNumber.put("ታህሳሥ", 0);
 
         monthName = new HashMap<>();
         monthName.put(1, "ጥር");
@@ -32,14 +35,12 @@ public class Constants {
         monthName.put(9, "መስከረም");
         monthName.put(10, "ጥቅምት");
         monthName.put(11, "ህዳር");
-        // The calendar object used in the ExcelFileGenerator represent's the 12th month with 0
         monthName.put(0, "ታህሳሥ");
     }
 
-    public static final int MINIMUM_FREE_WEEKS = 3;
-    public static final int MINIMUM_ELDERS_LEFT_IN_CONG = 2;
+    public static final int MINIMUM_FREE_WEEKS = 4;
+    public static final int MINIMUM_ELDERS_LEFT_IN_CONG = 1;
     public static final double PERCENTAGE_OF_FREE_CONGREGATIONS_IN_A_WEEK = 0.5;
-
     // title(s), labels and column names used in the UI
     public static final String FRAME_TITLE = "የንግግር ፕሮግራም አመንጪ";
     // congregation table column title(s)
@@ -58,6 +59,7 @@ public class Constants {
     public static final String ELDER_TABLE_PHONE_NUMBER_TITLE = "የስልክ ቁጥር";
     public static final String ELDER_TABLE_TALK_NUMBER_TITLE  = "የንግግር ቁጥር";
     public static final String ELDER_TABLE_CONGREGATION_TITLE = "ጉባኤ";
+    public static final String ELDER_TABLE_ENABLED_TITLE = "Enable";
     // button names
     public static final String ADD_RECORD    = "ጨምር";
     public static final String UPDATE_RECORD = "አዘምን";

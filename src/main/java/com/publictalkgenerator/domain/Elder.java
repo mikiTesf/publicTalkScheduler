@@ -25,6 +25,8 @@ public class Elder {
     private Talk talk;
     @DatabaseField (foreign = true, foreignAutoRefresh = true, canBeNull = false)
     private Congregation congregation;
+    @DatabaseField (canBeNull = false, defaultValue = "true")
+    private boolean enabled;
 
     private static Dao<Elder, Integer> elderDao;
     
@@ -93,6 +95,14 @@ public class Elder {
 
     public void setCongregation(Congregation congregation) {
         this.congregation = congregation;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override

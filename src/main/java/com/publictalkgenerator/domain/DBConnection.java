@@ -4,7 +4,7 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import java.sql.SQLException;
 
-class DBConnection {
+public class DBConnection {
     private static ConnectionSource connectionSource;
     static {
         // put the path to your local database
@@ -16,7 +16,7 @@ class DBConnection {
         }
     }
 
-    static ConnectionSource getConnectionSource() {
+    public static ConnectionSource getConnectionSource() {
         return connectionSource;
     }
 }

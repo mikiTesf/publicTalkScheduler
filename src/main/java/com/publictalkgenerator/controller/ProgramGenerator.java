@@ -1,7 +1,9 @@
 package com.publictalkgenerator.controller;
 
+import com.j256.ormlite.table.TableUtils;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
+import com.publictalkgenerator.domain.DBConnection;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
 import org.apache.commons.collections4.list.UnmodifiableList;
@@ -13,7 +15,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class ProgramGenerator {
-
     private LocalDate startDate;
     private LocalDate endDate;
     private List <Elder> allElders;
@@ -22,11 +23,10 @@ public class ProgramGenerator {
     private float totalFreeWeeksForCongregation;
     private Map<Congregation, Integer> totalEldersInCong;
 
-
     public ProgramGenerator(LocalDate startDate, LocalDate endDate) throws SQLException {
         this.startDate   = startDate;
         this.endDate     = endDate;
-        allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
+        allElders        = new UnmodifiableList<>(Elder.getElderDao().queryBuilder().where().eq("enabled", true).query());
         allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
         totalEldersInCong = totalEldersInCongregation();
         generateProgramDates();
@@ -49,14 +49,13 @@ public class ProgramGenerator {
         this.endDate = endDate;
     }
 
-
-
     private Map<Congregation, Integer> totalEldersInCongregation() throws SQLException {
 
         Map <Congregation, Integer> totalEldersInCong = new HashMap<>();
 
         for (Congregation c: allCongregations){
-            int count = Elder.getElderDao().queryBuilder().where().eq("congregation_id", c).query().size();
+            int count = Elder.getElderDao().queryBuilder().where().eq("congregation_id", c).and()
+                    .eq("enabled", true).query().size();
             totalEldersInCong.put(c, count);
         }
 
@@ -135,7 +134,7 @@ public class ProgramGenerator {
     private List<Elder> getEldersWhoDidntGiveTalkInACongregation (Congregation congregation) throws SQLException {
 
         List <Elder> elders = new ArrayList<>();
-        List <Elder> allElders = Elder.getElderDao().queryForAll();
+        List <Elder> allElders = Elder.getElderDao().queryBuilder().where().eq("enabled", true).query();
 
         try {
 
@@ -279,7 +278,11 @@ public class ProgramGenerator {
     }
 
     public void doGenerate () throws SQLException {
-
+        /*  The programs generated from previous generation(s) must
+         *   be cleared before new ones are generated otherwise the number
+         *   of weeks the ExcelFileGenerator tries to fit in a single
+         *   sheet will be more than the indicated amount */
+        TableUtils.clearTable(DBConnection.getConnectionSource(), Program.class);
         for (LocalDate week : programDates){
             generateProgramForWeek(week, allCongregations);
         }

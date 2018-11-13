@@ -1,5 +1,6 @@
 package com.publictalkgenerator.controller;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -62,6 +63,8 @@ public class ExcelFileGenerator {
                         .queryBuilder()
                         .where()
                         .eq("congregation_id", congregation)
+                        .and()
+                        .eq("enabled", true)
                         .query();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -96,7 +99,7 @@ public class ExcelFileGenerator {
             }
             formatRow(row2);
             // Iterate through each date and fill the details of the elders that come to this congregation
-            int nextRow = 2;
+            int nextRow    = 2;
             int weekNumber = 1;
 
             for (Date weekDate : distinctDates) {
@@ -216,8 +219,8 @@ public class ExcelFileGenerator {
         if (thickLeftBorder)    cellStyle.setBorderLeft(BorderStyle.THICK);
         if (thickRightBorder)   cellStyle.setBorderRight(BorderStyle.THICK);
         if (colored) {
-            cellStyle.setFillBackgroundColor(new XSSFColor(new java.awt.Color(190, 190, 190)));
-            cellStyle.setFillForegroundColor(new XSSFColor(new java.awt.Color(190, 190, 190)));
+            cellStyle.setFillBackgroundColor(new XSSFColor(new Color(190, 190, 190)));
+            cellStyle.setFillForegroundColor(new XSSFColor(new Color(190, 190, 190)));
             cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         }
 
@@ -311,7 +314,7 @@ public class ExcelFileGenerator {
                         }
                         row.getCell(i).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
                     }
-                } else { // else it is a normal row
+                } else { // else it is a normal (non-header) row
                     for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
                         if (i == 0) {
                             row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, true, false));

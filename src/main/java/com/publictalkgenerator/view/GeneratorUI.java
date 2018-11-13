@@ -6,7 +6,7 @@ import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
 import com.publictalkgenerator.controller.ProgramGenerator;
 import com.publictalkgenerator.domain.Congregation;
-import com.publictalkgenerator.domain.InstructionMessage;
+//import com.publictalkgenerator.domain.InstructionMessage;
 import com.publictalkgenerator.domain.Talk;
 import com.publictalkgenerator.domain.Elder;
 
@@ -61,11 +61,6 @@ public class GeneratorUI extends JFrame {
     private JButton updateCongregationButton;
     private JButton updateTalkButton;
     private JButton updateElderButton;
-    private JButton boldButton;
-    private JButton underlineButton;
-    private JButton italicButton;
-    private JTextArea instructionTextArea;
-    private JButton saveButton;
     private List<Congregation> congList;
     private List<Talk> talkList;
 
@@ -135,6 +130,7 @@ public class GeneratorUI extends JFrame {
         elderTableModel.addColumn(Constants.ELDER_TABLE_PHONE_NUMBER_TITLE);
         elderTableModel.addColumn(Constants.ELDER_TABLE_TALK_NUMBER_TITLE);
         elderTableModel.addColumn(Constants.ELDER_TABLE_CONGREGATION_TITLE);
+        elderTableModel.addColumn(Constants.ELDER_TABLE_ENABLED_TITLE);
 
         // fill the tables on the congregation/talk tab
         Object[] congTalkElderTableRow = new Object[2];
@@ -152,7 +148,7 @@ public class GeneratorUI extends JFrame {
             talkTableModel.addRow(talkTableRows);
         }
 
-        Object[] elderTableRows = new Object[7];
+        Object[] elderTableRows = new Object[8];
         for (Elder elder : elderList) {
             elderTableRows[0] = elder.getId();
             elderTableRows[1] = elder.getFirstName();
@@ -161,6 +157,7 @@ public class GeneratorUI extends JFrame {
             elderTableRows[4] = elder.getPhoneNumber();
             elderTableRows[5] = elder.getTalk().getTalkNumber();
             elderTableRows[6] = elder.getCongregation().getName();
+            elderTableRows[7] = elder.isEnabled();
             elderTableModel.addRow(elderTableRows);
         }
 
@@ -190,10 +187,14 @@ public class GeneratorUI extends JFrame {
         }
 
         elderTable.setModel(elderTableModel);
+        elderTable.getColumnModel().getColumn(7).setCellEditor(elderTable.getDefaultEditor(Boolean.class));
+        elderTable.getColumnModel().getColumn(7).setCellRenderer(elderTable.getDefaultRenderer(Boolean.class));
         elderTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         if (elderTable.getRowCount() > 0) {
             elderTable.getColumnModel().getColumn(0).setMinWidth(50);
             elderTable.getColumnModel().getColumn(0).setMaxWidth(50);
+            elderTable.getColumnModel().getColumn(7).setMaxWidth(60);
+            elderTable.getColumnModel().getColumn(7).setMaxWidth(60);
         }
 
         congTabelScrollPane.setPreferredSize(new Dimension(400, 150));
@@ -353,10 +354,11 @@ public class GeneratorUI extends JFrame {
                     e1.printStackTrace();
                 }
                 elder.setTalk(talk);
+                elder.setEnabled(true);
 
                 try {
                     elder = Elder.getElderDao().createIfNotExists(elder);
-                    Object[] elderDetails = new Object[7];
+                    Object[] elderDetails = new Object[8];
                     elderDetails[0] = elder.getId();
                     elderDetails[1] = elder.getFirstName();
                     elderDetails[2] = elder.getMiddleName();
@@ -364,6 +366,7 @@ public class GeneratorUI extends JFrame {
                     elderDetails[4] = elder.getPhoneNumber();
                     elderDetails[5] = elder.getTalk().getTalkNumber();
                     elderDetails[6] = elder.getCongregation().getName();
+                    elderDetails[7] = elder.isEnabled();
                     elderTableModel.addRow(elderDetails);
                     clearFields(Field.ELDER);
                     JOptionPane.showMessageDialog(
@@ -413,6 +416,7 @@ public class GeneratorUI extends JFrame {
                     e1.printStackTrace();
                 }
                 elder.setCongregation(congregation);
+                elder.setEnabled((boolean) elderTable.getValueAt(selectedRow, 7));
 
                 try {
                     Elder.getElderDao().update(elder);
@@ -528,7 +532,8 @@ public class GeneratorUI extends JFrame {
                                 (int) startDateDaySpinner.getValue()
                         ).getTime()
                 );
-                LocalDate endDate   = ProgramDate.dateToLocalDate(
+
+                LocalDate endDate = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) endDateYearSpinner.getValue(),
                                 Constants.monthNumber.get(endDateMonthComboBox.getSelectedItem()),
@@ -544,46 +549,6 @@ public class GeneratorUI extends JFrame {
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
-
-            }
-        });
-
-        boldButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selectedText = instructionTextArea.getSelectedText();
-                if (!(selectedText == null)) {
-                    instructionTextArea.replaceSelection("[b]" + selectedText + "[/b]");
-                }
-            }
-        });
-
-        italicButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selectedText = instructionTextArea.getSelectedText();
-                if (!(selectedText == null)) {
-                    instructionTextArea.replaceSelection("[t]" + selectedText + "[/t]");
-                }
-            }
-        });
-
-        underlineButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selectedText = instructionTextArea.getSelectedText();
-                if (!(selectedText == null)) {
-                    instructionTextArea.replaceSelection("[u]" + selectedText + "[/u]");
-                }
-            }
-        });
-
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                InstructionMessage message = new InstructionMessage();
-                message.setMessage(instructionTextArea.getText());
-                message.save();
             }
         });
     }
