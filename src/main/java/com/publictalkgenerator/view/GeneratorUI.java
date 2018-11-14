@@ -78,9 +78,9 @@ public class GeneratorUI extends JFrame {
         List<Elder> elderList = null;
 
         try {
-            congList  = Congregation.getCongregationDao().queryForAll();
-            talkList  = Talk.getTalkDao().queryForAll();
-            elderList = Elder.getElderDao().queryForAll();
+            congList  = Congregation.getCongregationDaoDisk().queryForAll();
+            talkList  = Talk.getTalkDaoDisk().queryForAll();
+            elderList = Elder.getElderDaoDisk().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -208,23 +208,19 @@ public class GeneratorUI extends JFrame {
                     return;
 
                 Congregation congregation = new Congregation(congregationNameField.getText());
-                try {
-                    congregation = Congregation.getCongregationDao().createIfNotExists(congregation);
-                    Object[] congregationDetails = new Object[2];
-                    congregationDetails[0] = congregation.getId();
-                    congregationDetails[1] = congregation.getName();
-                    congregationTableModel.addRow(congregationDetails);
-                    clearFields(Field.CONGREGATION);
-                    congregationComboBox.addItem(congregation.getName());
-                    JOptionPane.showMessageDialog(
-                            frame,
-                            Constants.CONGREGATION_ADDED_MESSAGE,
-                            Constants.SUCCESS_TITLE,
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
+                congregation.save();
+                Object[] congregationDetails = new Object[2];
+                congregationDetails[0] = congregation.getId();
+                congregationDetails[1] = congregation.getName();
+                congregationTableModel.addRow(congregationDetails);
+                clearFields(Field.CONGREGATION);
+                congregationComboBox.addItem(congregation.getName());
+                JOptionPane.showMessageDialog(
+                        frame,
+                        Constants.CONGREGATION_ADDED_MESSAGE,
+                        Constants.SUCCESS_TITLE,
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
@@ -237,7 +233,7 @@ public class GeneratorUI extends JFrame {
                 congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
                 congregation.setName(congregationTable.getValueAt(selectedRow, 1).toString());
                 try {
-                    Congregation.getCongregationDao().update(congregation);
+                    Congregation.getCongregationDaoDisk().update(congregation);
                     refreshCongregationComboBox();
                     JOptionPane.showMessageDialog(
                             frame,
@@ -257,23 +253,19 @@ public class GeneratorUI extends JFrame {
                 if (talkTitleTextField.getText().equals("") || talkNumberSpinner1.getValue() == null)
                     return;
                 Talk talk = new Talk(talkTitleTextField.getText(), (int) talkNumberSpinner1.getValue());
-                try {
-                    talk = Talk.getTalkDao().createIfNotExists(talk);
-                    Object[] talkDetails = new Object[3];
-                    talkDetails[0] = talk.getId();
-                    talkDetails[2] = talk.getTitle();
-                    talkDetails[1] = talk.getTalkNumber();
-                    clearFields(Field.TALK);
-                    talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
-                    JOptionPane.showMessageDialog(
-                            frame,
-                            Constants.TALK_ADDED_MESSAGE,
-                            Constants.SUCCESS_TITLE,
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
+                talk.save();
+                Object[] talkDetails = new Object[3];
+                talkDetails[0] = talk.getId();
+                talkDetails[2] = talk.getTitle();
+                talkDetails[1] = talk.getTalkNumber();
+                clearFields(Field.TALK);
+                talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
+                JOptionPane.showMessageDialog(
+                        frame,
+                        Constants.TALK_ADDED_MESSAGE,
+                        Constants.SUCCESS_TITLE,
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
@@ -288,7 +280,7 @@ public class GeneratorUI extends JFrame {
                 talk.setTitle(talkTable.getValueAt(selectedRow, 1).toString());
 
                 try {
-                    Talk.getTalkDao().update(talk);
+                    Talk.getTalkDaoDisk().update(talk);
                     refreshTalkComboBox();
                     JOptionPane.showMessageDialog(
                             frame,
@@ -323,7 +315,7 @@ public class GeneratorUI extends JFrame {
 
                 Congregation congregation = null;
                 try {
-                    congregation = Congregation.getCongregationDao()
+                    congregation = Congregation.getCongregationDaoDisk()
                                                .queryBuilder()
                                                .where()
                                                .eq("name", congregationComboBox.getSelectedItem())
@@ -344,7 +336,7 @@ public class GeneratorUI extends JFrame {
                                                               .toString()
                                                               .substring(0, spaceBeginIndex)
                     );
-                    talk = Talk.getTalkDao()
+                    talk = Talk.getTalkDaoDisk()
                                .queryBuilder()
                                .where()
                                .eq("talkNumber", talkNumber)
@@ -356,28 +348,24 @@ public class GeneratorUI extends JFrame {
                 elder.setTalk(talk);
                 elder.setEnabled(true);
 
-                try {
-                    elder = Elder.getElderDao().createIfNotExists(elder);
-                    Object[] elderDetails = new Object[8];
-                    elderDetails[0] = elder.getId();
-                    elderDetails[1] = elder.getFirstName();
-                    elderDetails[2] = elder.getMiddleName();
-                    elderDetails[3] = elder.getLastName();
-                    elderDetails[4] = elder.getPhoneNumber();
-                    elderDetails[5] = elder.getTalk().getTalkNumber();
-                    elderDetails[6] = elder.getCongregation().getName();
-                    elderDetails[7] = elder.isEnabled();
-                    elderTableModel.addRow(elderDetails);
-                    clearFields(Field.ELDER);
-                    JOptionPane.showMessageDialog(
-                            frame,
-                            Constants.ELDER_ADDED_MESSAGE,
-                            Constants.SUCCESS_TITLE,
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
+                elder.save();
+                Object[] elderDetails = new Object[8];
+                elderDetails[0] = elder.getId();
+                elderDetails[1] = elder.getFirstName();
+                elderDetails[2] = elder.getMiddleName();
+                elderDetails[3] = elder.getLastName();
+                elderDetails[4] = elder.getPhoneNumber();
+                elderDetails[5] = elder.getTalk().getTalkNumber();
+                elderDetails[6] = elder.getCongregation().getName();
+                elderDetails[7] = elder.isEnabled();
+                elderTableModel.addRow(elderDetails);
+                clearFields(Field.ELDER);
+                JOptionPane.showMessageDialog(
+                        frame,
+                        Constants.ELDER_ADDED_MESSAGE,
+                        Constants.SUCCESS_TITLE,
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
@@ -395,7 +383,7 @@ public class GeneratorUI extends JFrame {
 
                 Talk talk = null;
                 try {
-                    talk = Talk.getTalkDao()
+                    talk = Talk.getTalkDaoDisk()
                             .queryBuilder()
                             .where()
                             .eq("talkNumber", elderTable.getValueAt(selectedRow, 5))
@@ -407,7 +395,7 @@ public class GeneratorUI extends JFrame {
 
                 Congregation congregation = null;
                 try {
-                    congregation = Congregation.getCongregationDao()
+                    congregation = Congregation.getCongregationDaoDisk()
                             .queryBuilder()
                             .where()
                             .eq("name", elderTable.getValueAt(selectedRow, 6))
@@ -419,7 +407,7 @@ public class GeneratorUI extends JFrame {
                 elder.setEnabled((boolean) elderTable.getValueAt(selectedRow, 7));
 
                 try {
-                    Elder.getElderDao().update(elder);
+                    Elder.getElderDaoDisk().update(elder);
                     JOptionPane.showMessageDialog(
                             frame,
                             Constants.ELDER_UPDATED_MESSAGE,
@@ -437,12 +425,12 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
                 try {
-                    Congregation congregation = Congregation.getCongregationDao()
+                    Congregation congregation = Congregation.getCongregationDaoDisk()
                             .queryBuilder().where()
                             .eq("id", congregationTable.getValueAt(selectedRow, 0))
                             .query().get(0);
 
-                    List<Elder> eldersInCongregation = Elder.getElderDao()
+                    List<Elder> eldersInCongregation = Elder.getElderDaoDisk()
                             .queryBuilder().where()
                             .eq("congregation_id", congregation)
                             .query();
@@ -455,10 +443,10 @@ public class GeneratorUI extends JFrame {
                     int choice = JOptionPane.showConfirmDialog(frame, "ሽማግሌ(ዎች):\n" + eldersNameList.toString() + "አብረው ይሰረዛሉ።", null, JOptionPane.YES_NO_OPTION);
 
                     if (choice == JOptionPane.YES_OPTION) {
-                        DeleteBuilder<Elder, Integer> elderDeleteBuilder = Elder.getElderDao().deleteBuilder();
+                        DeleteBuilder<Elder, Integer> elderDeleteBuilder = Elder.getElderDaoDisk().deleteBuilder();
                         elderDeleteBuilder.where().eq("congregation_id", congregation);
                         elderDeleteBuilder.delete();
-                        Congregation.getCongregationDao()
+                        Congregation.getCongregationDaoDisk()
                                 .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
                         congregationTableModel.removeRow(selectedRow);
                         congregationComboBox.removeItem(congregation.getName());
@@ -483,7 +471,7 @@ public class GeneratorUI extends JFrame {
                 try {
                     String talkNumberPlusTitle = talkTable.getValueAt(selectedRow, 2)
                             + talkTable.getValueAt(selectedRow, 1).toString();
-                    Talk.getTalkDao().deleteById((int) talkTable.getValueAt(selectedRow, 0));
+                    Talk.getTalkDaoDisk().deleteById((int) talkTable.getValueAt(selectedRow, 0));
                     talkTableModel.removeRow(selectedRow);
                     talkNumberComboBox.removeItem(talkNumberPlusTitle);
                     JOptionPane.showMessageDialog(
@@ -503,7 +491,7 @@ public class GeneratorUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int elderID = (int) elderTable.getValueAt(elderTable.getSelectedRow(), 0);
                 try {
-                    Elder.getElderDao().deleteById(elderID);
+                    Elder.getElderDaoDisk().deleteById(elderID);
                     elderTableModel.removeRow(elderTable.getSelectedRow());
                     JOptionPane.showMessageDialog(
                             frame,
@@ -585,7 +573,7 @@ public class GeneratorUI extends JFrame {
 
     private void refreshCongregationComboBox () {
         try {
-            congList = Congregation.getCongregationDao().queryForAll();
+            congList = Congregation.getCongregationDaoDisk().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -597,7 +585,7 @@ public class GeneratorUI extends JFrame {
 
     private void refreshTalkComboBox () {
         try {
-            talkList = Talk.getTalkDao().queryForAll();
+            talkList = Talk.getTalkDaoDisk().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }

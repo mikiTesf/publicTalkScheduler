@@ -19,8 +19,8 @@ public class InstructionMessage {
 
     static {
         try {
-            messageIntegerDao = DaoManager.createDao(DBConnection.getConnectionSource(), InstructionMessage.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), InstructionMessage.class);
+            messageIntegerDao = DaoManager.createDao(DBConnection.getConnectionSourceDisk(), InstructionMessage.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSourceDisk(), InstructionMessage.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }

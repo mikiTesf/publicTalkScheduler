@@ -28,7 +28,8 @@ public class Elder {
     @DatabaseField (canBeNull = false, defaultValue = "true")
     private boolean enabled;
 
-    private static Dao<Elder, Integer> elderDao;
+    private static Dao<Elder, Integer> elderDaoDisk;
+    private static Dao<Elder, Integer> elderDaoMem;
     
     // this no-argument constructor is required by ORMLite
     public Elder () { }
@@ -36,8 +37,8 @@ public class Elder {
     // DAO initialization
     static {
         try {
-            elderDao = DaoManager.createDao(DBConnection.getConnectionSource(), Elder.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Elder.class);
+            elderDaoDisk = DaoManager.createDao(DBConnection.getConnectionSourceDisk(), Elder.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSourceDisk(), Elder.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -105,21 +106,29 @@ public class Elder {
         this.enabled = enabled;
     }
 
+    public static Dao<Elder, Integer> getElderDaoDisk() {
+        return elderDaoDisk;
+    }
+
+    public static Dao<Elder, Integer> getElderDaoMem() {
+        return elderDaoMem;
+    }
+
+    static void setElderDaoMem(Dao<Elder, Integer> elderDaoMem) {
+        Elder.elderDaoMem = elderDaoMem;
+    }
+
     @Override
     public String toString() {
         return firstName + " " + middleName + " " + lastName;
     }
 
-    void save() {
+    public void save() {
         try {
-            elderDao.createIfNotExists(this);
+            elderDaoDisk.createIfNotExists(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public static Dao<Elder, Integer> getElderDao () {
-        return elderDao;
     }
 
     @Override

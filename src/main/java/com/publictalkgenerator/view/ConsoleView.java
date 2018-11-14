@@ -3,7 +3,6 @@ package com.publictalkgenerator.view;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
-import org.apache.commons.collections4.list.TreeList;
 import org.apache.commons.collections4.list.UnmodifiableList;
 
 import java.sql.SQLException;
@@ -18,15 +17,15 @@ public class ConsoleView {
 
     public ConsoleView() throws SQLException {
         System.setProperty("com.j256.ormlite.logger.level", "ERROR");
-        allElders        = new UnmodifiableList<>(Elder.getElderDao().queryForAll());
-        allCongregations = new UnmodifiableList<>(Congregation.getCongregationDao().queryForAll());
+        allElders        = new UnmodifiableList<>(Elder.getElderDaoDisk().queryForAll());
+        allCongregations = new UnmodifiableList<>(Congregation.getCongregationDaoDisk().queryForAll());
     }
 
     private void setProgramDates () throws SQLException {
 
         List<Program> programsForCongregation = null;
 
-        programsForCongregation = Program.getProgramDao().queryForAll();
+        programsForCongregation = Program.getProgramDaoMem().queryForAll();
 
         Set<Date> progDates = new TreeSet<>();
 
@@ -55,7 +54,7 @@ public class ConsoleView {
 
     private void showProgramRow(Date date) throws SQLException {
 
-        List <Program> programsForWeek = Program.getProgramDao().queryBuilder()
+        List <Program> programsForWeek = Program.getProgramDaoMem().queryBuilder()
                 .where().eq("date", date).query();
         List<String> names = new ArrayList<>();
 

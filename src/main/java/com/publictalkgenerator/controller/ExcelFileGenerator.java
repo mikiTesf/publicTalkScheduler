@@ -26,7 +26,7 @@ public class ExcelFileGenerator {
         // A distinct list of Dates from the 'program' table
         distinctDates = new ArrayList<>();
         try {
-            for (Program program : Program.getProgramDao().queryBuilder().distinct().selectColumns("date").query()) {
+            for (Program program : Program.getProgramDaoMem().queryBuilder().distinct().selectColumns("date").query()) {
                 distinctDates.add(program.getDate());
             }
         } catch (SQLException e) {
@@ -35,7 +35,7 @@ public class ExcelFileGenerator {
         // List of all congregations to prepare a excelDoc for (that's all congregations)
         congregations = null;
         try {
-            congregations = Congregation.getCongregationDao().queryForAll();
+            congregations = Congregation.getCongregationDaoMem().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -59,7 +59,7 @@ public class ExcelFileGenerator {
              from the database. */
             List<Elder> elderList = null;
             try {
-                elderList = Elder.getElderDao()
+                elderList = Elder.getElderDaoMem()
                         .queryBuilder()
                         .where()
                         .eq("congregation_id", congregation)
@@ -94,12 +94,11 @@ public class ExcelFileGenerator {
             for (int i = 0; i < elderList.size(); i++) {
                 row2.createCell(5 + i).setCellValue(
                         elderList.get(i).getFirstName() + " " + elderList.get(i).getMiddleName() + "\n\r"
-                                + "(ንግግር ቁ. " + elderList.get(i).getTalk().getTalkNumber() + ")"
+                        + "(ንግግር ቁ. " + elderList.get(i).getTalk().getTalkNumber() + ")"
                 );
             }
             formatRow(row2);
             // Iterate through each date and fill the details of the elders that come to this congregation
-            int nextRow    = 2;
             int weekNumber = 1;
 
             for (Date weekDate : distinctDates) {
@@ -112,7 +111,7 @@ public class ExcelFileGenerator {
                 if (thisWeek.get(Calendar.MONTH) != lastWeek.get(Calendar.MONTH))
                     weekNumber = 1;
 
-                Row nonHeaderRow = scheduleSheet.createRow(nextRow);
+                Row nonHeaderRow = scheduleSheet.createRow(scheduleSheet.getLastRowNum() + 1);
 
                 nonHeaderRow.createCell(0).setCellValue(weekNumber);
                 nonHeaderRow.createCell(1).setCellValue(
@@ -123,7 +122,7 @@ public class ExcelFileGenerator {
                 // check if the congregation has no elder assigned for it today
                 Elder assignedToThisCongToday = null;
                 try {
-                    assignedToThisCongToday = Program.getProgramDao().queryBuilder().where()
+                    assignedToThisCongToday = Program.getProgramDaoMem().queryBuilder().where()
                             .eq("date", weekDate)
                             .and()
                             .eq("congregation_id", congregation)
@@ -147,7 +146,7 @@ public class ExcelFileGenerator {
                 for (Elder elder : elderList) {
                     List<Program> program = null;
                     try {
-                        program = Program.getProgramDao().queryBuilder().where()
+                        program = Program.getProgramDaoMem().queryBuilder().where()
                                 .eq("date", weekDate)
                                 .and()
                                 .eq("elder_id", elder).query();
@@ -166,7 +165,6 @@ public class ExcelFileGenerator {
                 }
 
                 formatRow(nonHeaderRow);
-                ++nextRow;
                 ++weekNumber;
             }
 
@@ -214,10 +212,10 @@ public class ExcelFileGenerator {
             boldFont.setFontHeightInPoints((short) 10);
             cellStyle.setFont(boldFont);
         }
-        if (thickTopBorder)     cellStyle.setBorderTop(BorderStyle.THICK);
-        if (thickBottomBorder)  cellStyle.setBorderBottom(BorderStyle.THICK);
-        if (thickLeftBorder)    cellStyle.setBorderLeft(BorderStyle.THICK);
-        if (thickRightBorder)   cellStyle.setBorderRight(BorderStyle.THICK);
+        if (thickTopBorder)    cellStyle.setBorderTop(BorderStyle.THICK);
+        if (thickBottomBorder) cellStyle.setBorderBottom(BorderStyle.THICK);
+        if (thickLeftBorder)   cellStyle.setBorderLeft(BorderStyle.THICK);
+        if (thickRightBorder)  cellStyle.setBorderRight(BorderStyle.THICK);
         if (colored) {
             cellStyle.setFillBackgroundColor(new XSSFColor(new Color(190, 190, 190)));
             cellStyle.setFillForegroundColor(new XSSFColor(new Color(190, 190, 190)));
@@ -264,66 +262,66 @@ public class ExcelFileGenerator {
         
         switch (row.getRowNum()) {
             case HEADER_ROW:
-                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
-                    row.getCell(i).setCellStyle(getCellStyle(true, true, true, false, true, true, true));
+                for (int column = 0; column < row.getPhysicalNumberOfCells(); column++) {
+                    row.getCell(column).setCellStyle(getCellStyle(true, true, true, false, true, true, true));
                 }
                 // the border between the two header cells must be normal
                 row.getCell(4).getCellStyle().setBorderRight(BorderStyle.THIN);
                 row.getCell(5).getCellStyle().setBorderLeft(BorderStyle.THIN);
                 break;
             case SECOND_ROW:
-                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
+                for (int column = 0; column < row.getPhysicalNumberOfCells(); column++) {
                     // the first cell
-                    if (i == 0) {
-                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, false, true, true));
-                    } else if (i == row.getLastCellNum() - 1) { // the last cell
-                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, true, false, true));
+                    if (column == 0) {
+                        row.getCell(column).setCellStyle(getCellStyle(true, true, false, false, false, true, true));
+                    } else if (column == row.getLastCellNum() - 1) { // the last cell
+                        row.getCell(column).setCellStyle(getCellStyle(true, true, false, false, true, false, true));
                     } else {
                         // the cells in the middle are only bold, centered and have bottom borders
-                        row.getCell(i).setCellStyle(getCellStyle(true, true, false, false, false, false, true));
+                        row.getCell(column).setCellStyle(getCellStyle(true, true, false, false, false, false, true));
                     }
-                    row.getCell(i).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
+                    row.getCell(column).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
 
                 }
                 break;
             case LAST_ROW:
-                for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
-                    if (i == 0) {
-                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, false, true, false));
-                    } else if (i == 1 || i == 2 || i == 4) {
-                        row.getCell(i).setCellStyle(getCellStyle(false, false, false ,true ,false ,false, false));
-                    } else if (i == row.getLastCellNum() - 1) {
-                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, true, false, false));
+                for (int column = 0; column < row.getPhysicalNumberOfCells(); column++) {
+                    if (column == 0) {
+                        row.getCell(column).setCellStyle(getCellStyle(true, false, false, true, false, true, false));
+                    } else if (column == 1 || column == 2 || column == 4) {
+                        row.getCell(column).setCellStyle(getCellStyle(false, false, false ,true ,false ,false, false));
+                    } else if (column == row.getLastCellNum() - 1) {
+                        row.getCell(column).setCellStyle(getCellStyle(true, false, false, true, true, false, false));
                     } else {
-                        row.getCell(i).setCellStyle(getCellStyle(true, false, false, true, false, false, false));
+                        row.getCell(column).setCellStyle(getCellStyle(true, false, false, true, false, false, false));
                     }
                 }
                 break;
             default:
                 // if the value in the cell is "1" it means that it is a new-week row
                 if (row.getCell(row.getFirstCellNum()).getNumericCellValue() == 1) {
-                    for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
-                        if (i == 0) {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, true, true));
-                        } else if (i == 1 || i == 2 || i == 4) {
-                            row.getCell(i).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, true));
-                        } else if (i == row.getLastCellNum() - 1) {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, true, false, true));
+                    for (int column = 0; column < row.getPhysicalNumberOfCells(); column++) {
+                        if (column == 0) {
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, false, true, true));
+                        } else if (column == 1 || column == 2 || column == 4) {
+                            row.getCell(column).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, true));
+                        } else if (column == row.getLastCellNum() - 1) {
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, true, false, true));
                         } else {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, false, true));
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, false, false, true));
                         }
-                        row.getCell(i).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
+                        row.getCell(column).getCellStyle().setBorderBottom(BorderStyle.MEDIUM);
                     }
                 } else { // else it is a normal (non-header) row
-                    for (int i = 0; i < row.getPhysicalNumberOfCells(); i++) {
-                        if (i == 0) {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, true, false));
-                        } else if (i == 1 || i == 2 || i == 4) {
-                            row.getCell(i).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, false));
-                        } else if (i == row.getLastCellNum() - 1) {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, true, false, false));
+                    for (int column = 0; column < row.getPhysicalNumberOfCells(); column++) {
+                        if (column == 0) {
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, false, true, false));
+                        } else if (column == 1 || column == 2 || column == 4) {
+                            row.getCell(column).setCellStyle(getCellStyle(false, false, false ,false ,false ,false, false));
+                        } else if (column == row.getLastCellNum() - 1) {
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, true, false, false));
                         } else {
-                            row.getCell(i).setCellStyle(getCellStyle(true, false, false, false, false, false, false));
+                            row.getCell(column).setCellStyle(getCellStyle(true, false, false, false, false, false, false));
                         }
                     }
                 }

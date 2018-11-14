@@ -28,12 +28,14 @@ public class Program {
     @DatabaseField
     private boolean isFree;
 
-    private static Dao<Program, String> programDao;
+    private static Dao<Program, String> programDaoMem;
+    private static Dao<Program, String> programDaoDisk;
 
     static {
         try {
-            programDao = DaoManager.createDao(DBConnection.getConnectionSource(), Program.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Program.class);
+            programDaoDisk = DaoManager.createDao(DBConnection.getConnectionSourceDisk(), Program.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSourceDisk(), Program.class);
+            TableUtils.clearTable(DBConnection.getConnectionSourceDisk(), Program.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -65,10 +67,26 @@ public class Program {
         return elder;
     }
 
+    public static Dao<Program, String> getProgramDaoDisk() {
+        return programDaoDisk;
+    }
+
+    public static void setProgramDaoDisk(Dao<Program, String> programDaoDisk) {
+        Program.programDaoDisk = programDaoDisk;
+    }
+
+    public static Dao<Program, String> getProgramDaoMem() {
+        return programDaoMem;
+    }
+
+    static void setProgramDaoMem (Dao<Program, String> programDaoMem) {
+        Program.programDaoMem = programDaoMem;
+    }
 
     public void save() {
         try {
-            programDao.createIfNotExists(this);
+            programDaoMem.createIfNotExists(this);
+//            System.out.println(programDaoMem.countOf());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -80,9 +98,5 @@ public class Program {
 
     public void setFree(boolean free) {
         isFree = free;
-    }
-
-    public static Dao<Program, String> getProgramDao () {
-        return programDao;
     }
 }

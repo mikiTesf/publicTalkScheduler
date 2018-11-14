@@ -16,14 +16,15 @@ public class Congregation {
     @DatabaseField
     private String name;
 
-    private static Dao<Congregation, Integer> congregationDao;
+    private static Dao<Congregation, Integer> congregationDaoDisk;
+    private static Dao<Congregation, Integer> congregationDaoMem;
 
     public Congregation() {}
 
     static {
         try {
-            congregationDao = DaoManager.createDao(DBConnection.getConnectionSource(), Congregation.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Congregation.class);
+            congregationDaoDisk   = DaoManager.createDao(DBConnection.getConnectionSourceDisk(), Congregation.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSourceDisk(), Congregation.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -49,22 +50,30 @@ public class Congregation {
         return id;
     }
 
+    public static Dao<Congregation, Integer> getCongregationDaoDisk() {
+        return congregationDaoDisk;
+    }
+
+    public static Dao<Congregation, Integer> getCongregationDaoMem() {
+        return congregationDaoMem;
+    }
+
+    static void setCongregationDaoMem(Dao<Congregation, Integer> congregationDaoMem) {
+        Congregation.congregationDaoMem = congregationDaoMem;
+    }
+
     @Override
     public String toString(){
         return name;
     }
 
 
-    void save() {
+    public void save() {
         try {
-            congregationDao.createIfNotExists(this);
+            congregationDaoDisk.createIfNotExists(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public static Dao<Congregation, Integer> getCongregationDao () {
-        return congregationDao;
     }
 
     @Override

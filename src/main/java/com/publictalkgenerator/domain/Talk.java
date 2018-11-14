@@ -19,12 +19,13 @@ public class Talk {
     @DatabaseField
     private String title;
 
-    private static Dao<Talk, Integer> talkDao;
+    private static Dao<Talk, Integer> talkDaoDisk;
+    private static Dao<Talk, Integer> talkDaoMem;
 
     static {
         try {
-            talkDao = DaoManager.createDao(DBConnection.getConnectionSource(), Talk.class);
-            TableUtils.createTableIfNotExists(DBConnection.getConnectionSource(), Talk.class);
+            talkDaoDisk = DaoManager.createDao(DBConnection.getConnectionSourceDisk(), Talk.class);
+            TableUtils.createTableIfNotExists(DBConnection.getConnectionSourceDisk(), Talk.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -32,7 +33,7 @@ public class Talk {
 
     public Talk() {}
 
-    Talk (int talkNumber){
+    private Talk(int talkNumber){
         setTalkNumber(talkNumber);
     }
 
@@ -65,6 +66,18 @@ public class Talk {
         this.title = title;
     }
 
+    public static Dao<Talk, Integer> getTalkDaoDisk() {
+        return talkDaoDisk;
+    }
+
+    public static Dao<Talk, Integer> getTalkDaoMem() {
+        return talkDaoMem;
+    }
+
+    static void setTalkDaoMem(Dao<Talk, Integer> talkDaoMem) {
+        Talk.talkDaoMem = talkDaoMem;
+    }
+
     @Override
     public String toString(){
         if (title.isEmpty()){
@@ -73,15 +86,11 @@ public class Talk {
         return title;
     }
 
-    void save() {
+    public void save() {
         try {
-            talkDao.createIfNotExists(this);
+            talkDaoDisk.createIfNotExists(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public static Dao<Talk, Integer> getTalkDao () {
-        return talkDao;
     }
 }
