@@ -14,7 +14,7 @@ public class DBConnection {
     static {
 
         String dbURLDisk = "jdbc:sqlite:src/main/resources/database/data.db";
-        String dbURLMem  = "jdbc:sqlite::memory:";
+        String dbURLMem  = "jdbc:h2:mem:";
 
         try {
             connectionSourceDisk = new JdbcConnectionSource(dbURLDisk);
@@ -42,7 +42,7 @@ public class DBConnection {
         return connectionSourceDisk;
     }
 
-//    public static ConnectionSource getConnectionSourceMem() {
-//        return connectionSourceMem;
-//    }
+    public static ConnectionSource getConnectionSourceMem() {
+        return connectionSourceMem;
+    }
 }

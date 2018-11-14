@@ -26,7 +26,7 @@ public class ExcelFileGenerator {
         // A distinct list of Dates from the 'program' table
         distinctDates = new ArrayList<>();
         try {
-            for (Program program : Program.getProgramDaoMem().queryBuilder().distinct().selectColumns("date").query()) {
+            for (Program program : Program.getProgramDaoMem().queryBuilder().distinct().selectColumns("date").orderBy("date", true).query()) {
                 distinctDates.add(program.getDate());
             }
         } catch (SQLException e) {

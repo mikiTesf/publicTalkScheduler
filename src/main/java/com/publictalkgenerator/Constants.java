@@ -46,7 +46,7 @@ public class Constants {
     // congregation table column title(s)
     public static final String CONGREGATION_TABLE_ID_TITLE           = "#";
     public static final String CONGREGATION_TABLE_NAME_TITLE         = "ስም";
-    public static final String CONGREGATION_TABLE_TOTAL_ELDERS_TITLE = "የሽማግሌዎች ብዛት";
+//    public static final String CONGREGATION_TABLE_TOTAL_ELDERS_TITLE = "የሽማግሌዎች ብዛት";
     // talk table column title(s)
     public static final String TALK_TABLE_ID_TITLE          = "#";
     public static final String TALK_TABLE_TITLE_TITLE       = "ርዕስ";
@@ -67,7 +67,7 @@ public class Constants {
     // ****************** JOptionPane dialogue messages ******************
     // JOptionPane dialogue box titles
     public static final String SUCCESS_TITLE = "ተሳክቷል";
-    public static final String FAIL_TITLE    = "ስተህት";
+//    public static final String FAIL_TITLE    = "ስተህት";
     // congregation messages
     public static final String CONGREGATION_ADDED_MESSAGE   = "ጉባኤው ተጨምሯል";
     public static final String CONGREGATION_UPDATED_MESSAGE = "የጉባኤው አይነታዎች ተዘምነዋል";

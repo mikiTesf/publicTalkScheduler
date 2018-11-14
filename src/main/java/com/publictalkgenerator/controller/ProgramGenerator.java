@@ -1,10 +1,12 @@
 package com.publictalkgenerator.controller;
 
+import com.j256.ormlite.table.TableUtils;
 import com.publictalkgenerator.Constants;
 import com.publictalkgenerator.domain.Congregation;
 import com.publictalkgenerator.domain.Elder;
 import com.publictalkgenerator.domain.Program;
 import com.publictalkgenerator.domain.Talk;
+import com.publictalkgenerator.domain.DBConnection;
 import org.apache.commons.collections4.list.UnmodifiableList;
 
 import java.sql.SQLException;
@@ -25,10 +27,12 @@ public class ProgramGenerator {
     public ProgramGenerator(LocalDate startDate, LocalDate endDate) throws SQLException {
         /*
          * all of the tables in the memory DB must be
-         * populated before program generation begins */
+         * populated and any previous program record(s)
+         * must be cleared before program generation begins */
         Congregation.getCongregationDaoMem().create(Congregation.getCongregationDaoDisk().queryForAll());
         Talk.getTalkDaoMem().create(Talk.getTalkDaoDisk().queryForAll());
         Elder.getElderDaoMem().create(Elder.getElderDaoDisk().queryForAll());
+        TableUtils.clearTable(DBConnection.getConnectionSourceMem(), Program.class);
 
         this.startDate    = startDate;
         this.endDate      = endDate;
