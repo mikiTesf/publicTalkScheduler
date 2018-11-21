@@ -76,8 +76,14 @@ public class Constants {
     public static final String TALK_ADDED_MESSAGE   = "ንግግሩ ተጨምሯል";
     public static final String TALK_UPDATED_MESSAGE = "የንግግሩ አይነታዎች ተዘምነዋል";
     public static final String TALK_REMOVED_MESSAGE = "ንግግሩ ተሰርዟል";
-    // elder message
+    // elder messages
     public static final String ELDER_ADDED_MESSAGE   = "ተናጋሪው ተጨምሯል";
     public static final String ELDER_UPDATED_MESSAGE = "የተናጋሪው አይነታዎች ተዘምነዋል";
     public static final String ELDER_REMOVED_MESSAGE = "ተናጋሪው ተሰርዟል";
+    // progress-label messages
+    public static final String DEFAULT_LABEL_MESSAGE       = "...";
+    public static final String GENERATING_SCHEDULE_MESSAGE = "ተናጋሪዎችን በመደልደል ላይ...";
+    public static final String CREATING_EXCEL_DOC_MESSAGE  = "Excel ሰነድ በማዘጋጀት ላይ...";
+    public static final String EXCEL_DOC_CREATED_MESSAGE   = "Excel ሰነዱ ተዘጋጅቷል...";
+    public static final String DONE_MESSAGE                = "ተጠናቋል";
 }

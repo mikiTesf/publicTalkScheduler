@@ -29,12 +29,7 @@ public class ExcelFileGenerator {
             for (Program program : Program.getProgramDaoMem().queryBuilder().distinct().selectColumns("date").orderBy("date", true).query()) {
                 distinctDates.add(program.getDate());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        // List of all congregations to prepare a excelDoc for (that's all congregations)
-        congregations = null;
-        try {
+            // List of all congregations to prepare a excelDoc for (that's all congregations)
             congregations = Congregation.getCongregationDaoMem().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -42,6 +37,7 @@ public class ExcelFileGenerator {
     }
 
     public void createExcel () {
+        final int WEEK_NUMBER = 0, DATE = 1, SPEAKER = 2, TALK_NUMBER = 3, PHONE_NUMBER = 4;
         // the main loop that populates the sheet for each congregation
         for (Congregation congregation : congregations) {
             // create a sheet named after the congregation
@@ -85,11 +81,11 @@ public class ExcelFileGenerator {
             formatRow(headerRow);
             // give titles to the first 6 columns (cells) of the next row
             Row row2 = scheduleSheet.createRow(1);
-            row2.createCell(0).setCellValue("ሳምንት");
-            row2.createCell(1).setCellValue("ቀን");
-            row2.createCell(2).setCellValue("ተናጋሪ");
-            row2.createCell(3).setCellValue("የንግግር ቁ.");
-            row2.createCell(4).setCellValue("የሞባይል ስ.ቁ.");
+            row2.createCell(WEEK_NUMBER).setCellValue("ሳምንት");
+            row2.createCell(DATE).setCellValue("ቀን");
+            row2.createCell(SPEAKER).setCellValue("ተናጋሪ");
+            row2.createCell(TALK_NUMBER).setCellValue("የንግግር ቁ.");
+            row2.createCell(PHONE_NUMBER).setCellValue("የሞባይል ስ.ቁ.");
             // fill the next n cells with the names of the elders to be sent from this congregation
             for (int i = 0; i < elderList.size(); i++) {
                 row2.createCell(5 + i).setCellValue(
@@ -113,8 +109,8 @@ public class ExcelFileGenerator {
 
                 Row nonHeaderRow = scheduleSheet.createRow(scheduleSheet.getLastRowNum() + 1);
 
-                nonHeaderRow.createCell(0).setCellValue(weekNumber);
-                nonHeaderRow.createCell(1).setCellValue(
+                nonHeaderRow.createCell(WEEK_NUMBER).setCellValue(weekNumber);
+                nonHeaderRow.createCell(DATE).setCellValue(
                         Constants.monthName.get(thisWeek.get(Calendar.MONTH)) + " " +
                         thisWeek.get(Calendar.DAY_OF_MONTH) + " " +
                         thisWeek.get(Calendar.YEAR)
@@ -132,15 +128,13 @@ public class ExcelFileGenerator {
                 }
 
                 if (assignedToThisCongToday == null) {
-                    nonHeaderRow.createCell(2).setCellValue("");
-                    nonHeaderRow.createCell(3).setCellValue("");
-                    nonHeaderRow.createCell(4).setCellValue("");
+                    nonHeaderRow.createCell(SPEAKER).setCellValue("");
+                    nonHeaderRow.createCell(TALK_NUMBER).setCellValue("");
+                    nonHeaderRow.createCell(PHONE_NUMBER).setCellValue("");
                 } else {
-                    nonHeaderRow.createCell(2).setCellValue(assignedToThisCongToday.getFirstName() + " " + assignedToThisCongToday.getMiddleName());
-                    // fill the elders talk number
-                    nonHeaderRow.createCell(3).setCellValue(assignedToThisCongToday.getTalk().getTalkNumber());
-                    // fill the elder's phone number
-                    nonHeaderRow.createCell(4).setCellValue(assignedToThisCongToday.getPhoneNumber());
+                    nonHeaderRow.createCell(SPEAKER).setCellValue(assignedToThisCongToday.getFirstName() + " " + assignedToThisCongToday.getMiddleName());
+                    nonHeaderRow.createCell(TALK_NUMBER).setCellValue(assignedToThisCongToday.getTalk().getTalkNumber());
+                    nonHeaderRow.createCell(PHONE_NUMBER).setCellValue(assignedToThisCongToday.getPhoneNumber());
                 }
 
                 for (Elder elder : elderList) {
@@ -153,9 +147,8 @@ public class ExcelFileGenerator {
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
-
                     //noinspection ConstantConditions
-                    if (program.size() == 0) {
+                    if (program.isEmpty()) {
                         nonHeaderRow.createCell(nonHeaderRow.getLastCellNum()).setCellValue("");
                     } else {
                         nonHeaderRow.createCell(nonHeaderRow.getLastCellNum()).setCellValue(
@@ -170,7 +163,6 @@ public class ExcelFileGenerator {
 
             insertInstructionMessage(scheduleSheet);
 
-            // auto-size all columns
             for (int column = 0; column < totalColumnsInSheet; column++) {
                 scheduleSheet.autoSizeColumn(column);
             }
@@ -327,6 +319,10 @@ public class ExcelFileGenerator {
                 }
                 break;
         }
+    }
+
+    public int getNumberOfSheets () {
+        return excelDoc.getNumberOfSheets();
     }
 
 //    private void parseInstructionMessageAndPutInSheet (XSSFSheet sheet) {

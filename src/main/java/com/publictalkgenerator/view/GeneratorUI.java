@@ -18,6 +18,8 @@ import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.GregorianCalendar;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import java.util.List;
 
@@ -61,6 +63,8 @@ public class GeneratorUI extends JFrame {
     private JButton updateCongregationButton;
     private JButton updateTalkButton;
     private JButton updateElderButton;
+    private JLabel progressIndicatingLabel;
+    private JProgressBar progressBar;
     private List<Congregation> congList;
     private List<Talk> talkList;
 
@@ -72,6 +76,8 @@ public class GeneratorUI extends JFrame {
         } catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException e) {
             e.printStackTrace();
         }
+
+        progressIndicatingLabel.setText(Constants.DEFAULT_LABEL_MESSAGE);
 
         congList              = null;
         talkList              = null;
@@ -513,6 +519,7 @@ public class GeneratorUI extends JFrame {
         generateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                generateButton.setEnabled(false);
                 LocalDate startDate = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) startDateYearSpinner.getValue(),
@@ -529,14 +536,27 @@ public class GeneratorUI extends JFrame {
                         ).getTime()
                 );
 
-                try {
-                    ProgramGenerator generator = new ProgramGenerator(startDate, endDate);
-                    generator.doGenerate();
-                    ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
-                    fileGenerator.createExcel();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
+                ExecutorService service = Executors.newSingleThreadExecutor();
+                service.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ProgramGenerator generator = new ProgramGenerator(startDate, endDate);
+                            progressBar.setIndeterminate(true);
+                            progressIndicatingLabel.setText(Constants.GENERATING_SCHEDULE_MESSAGE);
+                            generator.doGenerate();
+                            progressIndicatingLabel.setText(Constants.CREATING_EXCEL_DOC_MESSAGE);
+                        } catch (SQLException e1) {
+                            e1.printStackTrace();
+                        }
+                        ExcelFileGenerator fileGenerator = new ExcelFileGenerator();
+                        fileGenerator.createExcel();
+                        progressIndicatingLabel.setText(Constants.EXCEL_DOC_CREATED_MESSAGE);
+                        progressBar.setIndeterminate(false);
+                        progressIndicatingLabel.setText(Constants.DONE_MESSAGE);
+                        generateButton.setEnabled(true);
+                    }
+                });
             }
         });
     }
