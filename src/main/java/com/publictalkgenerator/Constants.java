@@ -44,9 +44,8 @@ public class Constants {
     // title(s), labels and column names used in the UI
     public static final String FRAME_TITLE = "የንግግር ፕሮግራም አመንጪ";
     // congregation table column title(s)
-    public static final String CONGREGATION_TABLE_ID_TITLE           = "#";
-    public static final String CONGREGATION_TABLE_NAME_TITLE         = "ስም";
-//    public static final String CONGREGATION_TABLE_TOTAL_ELDERS_TITLE = "የሽማግሌዎች ብዛት";
+    public static final String CONGREGATION_TABLE_ID_TITLE   = "#";
+    public static final String CONGREGATION_TABLE_NAME_TITLE = "ስም";
     // talk table column title(s)
     public static final String TALK_TABLE_ID_TITLE          = "#";
     public static final String TALK_TABLE_TITLE_TITLE       = "ርዕስ";
@@ -60,23 +59,43 @@ public class Constants {
     public static final String ELDER_TABLE_TALK_NUMBER_TITLE  = "የንግግር ቁጥር";
     public static final String ELDER_TABLE_CONGREGATION_TITLE = "ጉባኤ";
     public static final String ELDER_TABLE_ENABLED_TITLE = "Enable";
-    // button names
+    // button texts
     public static final String ADD_RECORD    = "ጨምር";
     public static final String UPDATE_RECORD = "አዘምን";
     public static final String REMOVE_RECORD = "ሰርዝ";
+    public static final String PREPARE_EXCEL = "አዘጋጅ";
     // ****************** JOptionPane dialogue messages ******************
     // JOptionPane dialogue box titles
     public static final String SUCCESS_TITLE = "ተሳክቷል";
 //    public static final String FAIL_TITLE    = "ስተህት";
-    // congregation messages
-    public static final String CONGREGATION_ADDED_MESSAGE   = "ጉባኤው ተጨምሯል";
-    public static final String CONGREGATION_UPDATED_MESSAGE = "የጉባኤው አይነታዎች ተዘምነዋል";
-    public static final String CONGREGATION_REMOVED_MESSAGE = "ጉባኤው ተሰርዟል";
-    // talk messages
+    /*
+    * A single space character is left before the CONFIRM_REMOVE... strings
+    * for talks and elders so that the value (name) of the talk or elder can be
+    * prepended on the corresponding message */
+
+    /* congregation messages
+    *
+    * The message displayed on the confirmation dialogue that appears before an elder is removed
+    * follows the following format: "Elders " + [an unordered list of elders] + " will be removed
+    * with " + [congregation_name]. Therefore, separate string variables, one for "Elders" and one
+    * for "will be removed together", are used. The unordered list of elders will be fetched automatically.
+    * The order of the strings may vary according to the language used. */
+    public static final String ELDERS                        = "ሽማግሌ(ዎች):\n";
+    public static final String WILL_BE_REMOVED_TOGETHER_WITH = " ጋር አብረው ይሰረዛሉ።";
+    public static final String CONGREGATION_ADDED_MESSAGE    = "ጉባኤው ተጨምሯል";
+    public static final String CONGREGATION_UPDATED_MESSAGE  = "የጉባኤው አይነታዎች ተዘምነዋል";
+    public static final String CONGREGATION_REMOVED_MESSAGE  = "ጉባኤው ተሰርዟል";
+    /* talk messages
+    *
+    * The message displayed on the confirmation dialogue that appears before a talk is removed
+    * follows the following format: "Remove " + [talkNumber (title)] + "?"
+    * The order of the strings may vary according to the language used. */
+    public static final String REMOVE_TALK          = " ይሰረዝ?";
     public static final String TALK_ADDED_MESSAGE   = "ንግግሩ ተጨምሯል";
     public static final String TALK_UPDATED_MESSAGE = "የንግግሩ አይነታዎች ተዘምነዋል";
     public static final String TALK_REMOVED_MESSAGE = "ንግግሩ ተሰርዟል";
     // elder messages
+    public static final String CONFIRM_REMOVE_ELDER  = " ይሰረዝ?";
     public static final String ELDER_ADDED_MESSAGE   = "ተናጋሪው ተጨምሯል";
     public static final String ELDER_UPDATED_MESSAGE = "የተናጋሪው አይነታዎች ተዘምነዋል";
     public static final String ELDER_REMOVED_MESSAGE = "ተናጋሪው ተሰርዟል";

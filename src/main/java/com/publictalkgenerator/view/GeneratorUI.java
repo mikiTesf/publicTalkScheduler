@@ -6,22 +6,22 @@ import com.publictalkgenerator.controller.ExcelFileGenerator;
 import com.publictalkgenerator.controller.ProgramDate;
 import com.publictalkgenerator.controller.ProgramGenerator;
 import com.publictalkgenerator.domain.Congregation;
-//import com.publictalkgenerator.domain.InstructionMessage;
-import com.publictalkgenerator.domain.Talk;
 import com.publictalkgenerator.domain.Elder;
+import com.publictalkgenerator.domain.Talk;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import java.util.List;
+//import com.publictalkgenerator.domain.InstructionMessage;
 
 public class GeneratorUI extends JFrame {
     private JFrame frame = this;
@@ -70,6 +70,7 @@ public class GeneratorUI extends JFrame {
 
     public GeneratorUI() {
         setTitle(Constants.FRAME_TITLE);
+        progressBar.setEnabled(false);
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -122,6 +123,8 @@ public class GeneratorUI extends JFrame {
         addElderButton.setText(Constants.ADD_RECORD);
         updateElderButton.setText(Constants.UPDATE_RECORD);
         removeElderButton.setText(Constants.REMOVE_RECORD);
+
+        generateButton.setText(Constants.PREPARE_EXCEL);
 
         elderTableModel = new DefaultTableModel () {
             @Override
@@ -177,7 +180,7 @@ public class GeneratorUI extends JFrame {
         }
 
         congregationTable.setModel(congregationTableModel);
-        congregationTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        congregationTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         if (congregationTable.getRowCount() > 0) {
             congregationTable.getColumnModel().getColumn(0).setMinWidth(50);
             congregationTable.getColumnModel().getColumn(0).setMaxWidth(50);
@@ -205,7 +208,7 @@ public class GeneratorUI extends JFrame {
 
         congTabelScrollPane.setPreferredSize(new Dimension(400, 150));
         talkTableScrollPane.setPreferredSize(new Dimension(400, 150));
-        elderTableScrollPane.setPreferredSize(new Dimension(400, 150));
+//        elderTableScrollPane.setPreferredSize(new Dimension(400, 150));
         // congregation_talk tab button events
         addCongregationButton.addActionListener(new ActionListener() {
             @Override
@@ -218,8 +221,8 @@ public class GeneratorUI extends JFrame {
                 Object[] congregationDetails = new Object[2];
                 congregationDetails[0] = congregation.getId();
                 congregationDetails[1] = congregation.getName();
-                congregationTableModel.addRow(congregationDetails);
                 clearFields(Field.CONGREGATION);
+                congregationTableModel.addRow(congregationDetails);
                 congregationComboBox.addItem(congregation.getName());
                 JOptionPane.showMessageDialog(
                         frame,
@@ -234,6 +237,7 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
+                if (selectedRow == -1) return;
 
                 Congregation congregation = new Congregation();
                 congregation.setId( (int) congregationTable.getValueAt(selectedRow, 0));
@@ -262,9 +266,10 @@ public class GeneratorUI extends JFrame {
                 talk.save();
                 Object[] talkDetails = new Object[3];
                 talkDetails[0] = talk.getId();
-                talkDetails[2] = talk.getTitle();
-                talkDetails[1] = talk.getTalkNumber();
+                talkDetails[1] = talk.getTitle();
+                talkDetails[2] = talk.getTalkNumber();
                 clearFields(Field.TALK);
+                talkTableModel.addRow(talkDetails);
                 talkNumberComboBox.addItem(talk.getTalkNumber() + " - " + talk.getTitle());
                 JOptionPane.showMessageDialog(
                         frame,
@@ -279,8 +284,9 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = talkTable.getSelectedRow();
-                Talk talk = new Talk();
+                if (selectedRow == -1) return;
 
+                Talk talk = new Talk();
                 talk.setId( (int) talkTable.getValueAt(selectedRow, 0));
                 talk.setTalkNumber(Integer.parseInt(talkTable.getValueAt(selectedRow, 2).toString()));
                 talk.setTitle(talkTable.getValueAt(selectedRow, 1).toString());
@@ -364,8 +370,8 @@ public class GeneratorUI extends JFrame {
                 elderDetails[5] = elder.getTalk().getTalkNumber();
                 elderDetails[6] = elder.getCongregation().getName();
                 elderDetails[7] = elder.isEnabled();
-                elderTableModel.addRow(elderDetails);
                 clearFields(Field.ELDER);
+                elderTableModel.addRow(elderDetails);
                 JOptionPane.showMessageDialog(
                         frame,
                         Constants.ELDER_ADDED_MESSAGE,
@@ -379,8 +385,9 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = elderTable.getSelectedRow();
-                Elder elder = new Elder();
+                if (selectedRow == -1) return;
 
+                Elder elder = new Elder();
                 elder.setId((int) elderTable.getValueAt(selectedRow, 0));
                 elder.setFirstName(elderTable.getValueAt(selectedRow, 1).toString());
                 elder.setMiddleName(elderTable.getValueAt(selectedRow, 2).toString());
@@ -430,6 +437,8 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = congregationTable.getSelectedRow();
+                if (selectedRow == -1) return;
+
                 try {
                     Congregation congregation = Congregation.getCongregationDaoDisk()
                             .queryBuilder().where()
@@ -446,24 +455,29 @@ public class GeneratorUI extends JFrame {
                         eldersNameList.append("\t- ").append(elder.getFirstName()).append(" ").append(elder.getMiddleName()).append("\n");
                     }
 
-                    int choice = JOptionPane.showConfirmDialog(frame, "ሽማግሌ(ዎች):\n" + eldersNameList.toString() + "አብረው ይሰረዛሉ።", null, JOptionPane.YES_NO_OPTION);
+                    int choice = JOptionPane.showConfirmDialog(
+                            frame,
+                            Constants.ELDERS + eldersNameList.toString() + "ከ " + congregation.getName()
+                                    + Constants.WILL_BE_REMOVED_TOGETHER_WITH,
+                            null,
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+                    if (choice == JOptionPane.CANCEL_OPTION) return;
 
-                    if (choice == JOptionPane.YES_OPTION) {
-                        DeleteBuilder<Elder, Integer> elderDeleteBuilder = Elder.getElderDaoDisk().deleteBuilder();
-                        elderDeleteBuilder.where().eq("congregation_id", congregation);
-                        elderDeleteBuilder.delete();
-                        Congregation.getCongregationDaoDisk()
-                                .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
-                        congregationTableModel.removeRow(selectedRow);
-                        congregationComboBox.removeItem(congregation.getName());
+                    DeleteBuilder<Elder, Integer> elderDeleteBuilder = Elder.getElderDaoDisk().deleteBuilder();
+                    elderDeleteBuilder.where().eq("congregation_id", congregation);
+                    elderDeleteBuilder.delete();
+                    Congregation.getCongregationDaoDisk()
+                            .deleteById((int) congregationTable.getValueAt(selectedRow, 0));
+                    congregationTableModel.removeRow(selectedRow);
+                    congregationComboBox.removeItem(congregation.getName());
 
-                        JOptionPane.showMessageDialog(
-                                frame,
-                                Constants.CONGREGATION_REMOVED_MESSAGE,
-                                Constants.SUCCESS_TITLE,
-                                JOptionPane.INFORMATION_MESSAGE
-                        );
-                    }
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            Constants.CONGREGATION_REMOVED_MESSAGE,
+                            Constants.SUCCESS_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -474,9 +488,19 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = talkTable.getSelectedRow();
+                if (selectedRow == -1) return;
+
                 try {
                     String talkNumberPlusTitle = talkTable.getValueAt(selectedRow, 2)
-                            + talkTable.getValueAt(selectedRow, 1).toString();
+                            + " - " + talkTable.getValueAt(selectedRow, 1).toString();
+
+                    int choice = JOptionPane.showConfirmDialog(
+                            frame,
+                            "\'" + talkNumberPlusTitle + "\'" + Constants.REMOVE_TALK, null,
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+                    if (choice == JOptionPane.CANCEL_OPTION) return;
+
                     Talk.getTalkDaoDisk().deleteById((int) talkTable.getValueAt(selectedRow, 0));
                     talkTableModel.removeRow(selectedRow);
                     talkNumberComboBox.removeItem(talkNumberPlusTitle);
@@ -495,9 +519,21 @@ public class GeneratorUI extends JFrame {
         removeElderButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int selectedRow = elderTable.getSelectedRow();
+                if (selectedRow == -1) return;
+
                 int elderID = (int) elderTable.getValueAt(elderTable.getSelectedRow(), 0);
                 try {
-                    Elder.getElderDaoDisk().deleteById(elderID);
+                    Elder elder = Elder.getElderDaoDisk().queryForId(elderID);
+                    int choice = JOptionPane.showConfirmDialog(
+                            frame,
+                            "\"" + elder.getFirstName() + " " + elder.getMiddleName() + "\"" + Constants.CONFIRM_REMOVE_ELDER,
+                            null,
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+                    if (choice == JOptionPane.CANCEL_OPTION) return;
+
+                    Elder.getElderDaoDisk().deleteById(elder.getId());
                     elderTableModel.removeRow(elderTable.getSelectedRow());
                     JOptionPane.showMessageDialog(
                             frame,
@@ -520,6 +556,7 @@ public class GeneratorUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 generateButton.setEnabled(false);
+                progressBar.setEnabled(true);
                 LocalDate startDate = ProgramDate.dateToLocalDate(
                         new GregorianCalendar(
                                 (int) startDateYearSpinner.getValue(),
@@ -555,6 +592,7 @@ public class GeneratorUI extends JFrame {
                         progressBar.setIndeterminate(false);
                         progressIndicatingLabel.setText(Constants.DONE_MESSAGE);
                         generateButton.setEnabled(true);
+                        progressBar.setEnabled(false);
                     }
                 });
             }
