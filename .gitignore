@@ -5,6 +5,6 @@ publicTalkScheduler.iws
 out/
 target/
 .ideaDataSources/
-data.db
+database/
 schedule.xlsx
 todo.feat

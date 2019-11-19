@@ -58,6 +58,8 @@ for i in range(1, 31):
                       + str(random.randint(0, 9)) + str(random.randint(0, 9))
     talk_id         = str(random.randint(1, 20))
     congregation_id = str(random.randint(1, 20))
-    csv_file.write(_id + ',' + first_name + ',' + middle_name + ',' + last_name + ',' + phoneNumber + ',' + talk_id + ',' + congregation_id + '\n')
+    enabled         = 'true'
+    csv_file.write(_id + ',' + first_name + ',' + middle_name + ',' + last_name + ','
+                    + phoneNumber + ',' + talk_id + ',' + congregation_id + ',' + enabled + '\n')
 
 print('elder_csv successfuly created...')
